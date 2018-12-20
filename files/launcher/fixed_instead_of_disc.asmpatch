@@ -1,0 +1,3 @@
+58852E	03	overwrite DRIVE_CDROM with DRIVE_FIXED from GetDriveTypeA
+58853E	82	overwrite CMP instruction
+588540	0375

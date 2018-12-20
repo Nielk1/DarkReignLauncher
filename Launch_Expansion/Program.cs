@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Launch_Expansion
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string exe = Environment.GetCommandLineArgs()[0]; // Command invocation part
+            string rawCmd = Environment.CommandLine;          // Complete command
+            string argsOnly = rawCmd.Remove(rawCmd.IndexOf(exe), exe.Length).TrimStart('"').Substring(1);
+
+            ProcessStartInfo info = new ProcessStartInfo()
+            {
+                FileName = "DarkReignLauncher.exe",
+                Arguments = "shadowhand " + argsOnly,
+                UseShellExecute = false,
+            };
+
+            Process proc = Process.Start(info);
+            proc.WaitForExit();
+
+        }
+    }
+}
