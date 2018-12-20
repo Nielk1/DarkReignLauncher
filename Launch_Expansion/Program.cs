@@ -17,7 +17,7 @@ namespace Launch_Expansion
 
             ProcessStartInfo info = new ProcessStartInfo()
             {
-                FileName = "DarkReignLauncher.exe",
+                FileName = "bootstrap.exe",
                 Arguments = "shadowhand " + argsOnly,
                 UseShellExecute = false,
             };

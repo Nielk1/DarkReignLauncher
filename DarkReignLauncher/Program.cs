@@ -64,7 +64,7 @@ namespace DarkReignLauncher
                 string argsOnly = rawCmd.Remove(rawCmd.IndexOf(exe), exe.Length).TrimStart('"').Substring(1);
                 string modFile = args[0];
                 argsOnly = argsOnly.Substring(modFile.Length).TrimStart();
-                string modFilename = Path.Combine("launcher", modFile + ".modification");
+                string modFilename = Path.Combine("ldata", modFile + ".modification");
                 if (!string.IsNullOrWhiteSpace(modFile) && File.Exists(modFilename))
                 {
                     List<Tuple<IntPtr, byte[]>> Inject = new List<Tuple<IntPtr, byte[]>>();
@@ -77,7 +77,7 @@ namespace DarkReignLauncher
                         {
                             case "ASM":
                                 {
-                                    string AsmFile = Path.Combine("launcher", lineParts[1] + ".asmpatch");
+                                    string AsmFile = Path.Combine("ldata", lineParts[1] + ".asmpatch");
                                     if (File.Exists(AsmFile))
                                     {
                                         string[] asmLines = File.ReadAllLines(AsmFile);
@@ -104,7 +104,7 @@ namespace DarkReignLauncher
 
                     Process proc = Process.Start(info);
 
-                    proc.WaitForInputIdle(100);
+                    proc.WaitForInputIdle(150);
                     //proc.WaitForInputIdle();
 
                     SuspendProcess(proc);

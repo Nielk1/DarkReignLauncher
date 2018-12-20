@@ -17,7 +17,7 @@ namespace Launch_Stock
 
             ProcessStartInfo info = new ProcessStartInfo()
             {
-                FileName = "DarkReignLauncher.exe",
+                FileName = "bootstrap.exe",
                 Arguments = "dkreign " + argsOnly,
                 UseShellExecute = false,
             };

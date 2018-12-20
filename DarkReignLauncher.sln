@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2019
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkReignLauncher", "DarkReignLauncher\DarkReignLauncher.csproj", "{90173F7D-9FC8-4F6F-BABA-19BE5263918F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bootstrap", "DarkReignLauncher\bootstrap.csproj", "{90173F7D-9FC8-4F6F-BABA-19BE5263918F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Launch_Stock", "Launch_Stock\Launch_Stock.csproj", "{CA60D80F-2427-42C8-B5C1-8233BEE470C4}"
 EndProject
