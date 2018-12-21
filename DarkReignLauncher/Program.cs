@@ -13,165 +13,94 @@ namespace DarkReignLauncher
 {
     class Program
     {
-        [Flags]
-        public enum ThreadAccess : int
-        {
-            TERMINATE = (0x0001),
-            SUSPEND_RESUME = (0x0002),
-            GET_CONTEXT = (0x0008),
-            SET_CONTEXT = (0x0010),
-            SET_INFORMATION = (0x0020),
-            QUERY_INFORMATION = (0x0040),
-            SET_THREAD_TOKEN = (0x0080),
-            IMPERSONATE = (0x0100),
-            DIRECT_IMPERSONATION = (0x0200)
-        }
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
-        [DllImport("kernel32.dll")]
-        static extern uint SuspendThread(IntPtr hThread);
-        [DllImport("kernel32.dll")]
-        static extern int ResumeThread(IntPtr hThread);
-        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern bool CloseHandle(IntPtr handle);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool WriteProcessMemory(
-          IntPtr hProcess,
-          IntPtr lpBaseAddress,
-          byte[] lpBuffer,
-          Int32 nSize,
-          out IntPtr lpNumberOfBytesWritten);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool WriteProcessMemory(
-          IntPtr hProcess,
-          IntPtr lpBaseAddress,
-          [MarshalAs(UnmanagedType.AsAny)] object lpBuffer,
-          int dwSize,
-          out IntPtr lpNumberOfBytesWritten);
-
-        [DllImport("kernel32.dll")]
-        public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
-
         static void Main(string[] args)
         {
             if (args.Length > 0)
             {
-                string exe = Environment.GetCommandLineArgs()[0]; // Command invocation part
-                string rawCmd = Environment.CommandLine;          // Complete command
-                string argsOnly = rawCmd.Remove(rawCmd.IndexOf(exe), exe.Length).TrimStart('"').Substring(1);
-                string modFile = args[0];
-                argsOnly = argsOnly.Substring(modFile.Length).TrimStart();
-                string modFilename = Path.Combine("ldata", modFile + ".modification");
-                if (!string.IsNullOrWhiteSpace(modFile) && File.Exists(modFilename))
+                string CleanArguments = string.Empty;
+                string ModFile = null;
                 {
-                    List<Tuple<IntPtr, byte[]>> Inject = new List<Tuple<IntPtr, byte[]>>();
-
-                    string[] lines = File.ReadAllLines(modFilename);
-                    for (int i = 1; i < lines.Length; i++)
-                    {
-                        string[] lineParts = lines[i].Split(new char[] { '\t' });
-                        switch (lineParts[0])
-                        {
-                            case "ASM":
-                                {
-                                    string AsmFile = Path.Combine("ldata", lineParts[1] + ".asmpatch");
-                                    if (File.Exists(AsmFile))
-                                    {
-                                        string[] asmLines = File.ReadAllLines(AsmFile);
-                                        foreach (string asmLine in asmLines)
-                                        {
-                                            string[] asmLineParts = asmLine.Split(new char[] { '\t' }, 3);
-                                            int addr = Convert.ToInt32(asmLineParts[0], 16);
-                                            byte[] data = StringToByteArray(asmLineParts[1]);
-
-                                            Inject.Add(new Tuple<IntPtr, byte[]>(new IntPtr(addr), data));
-                                        }
-                                    }
-                                }
-                                break;
-                        }
-                    }
+                    string Executable = Environment.GetCommandLineArgs()[0]; // Command invocation part
+                    string RawCommandLine = Environment.CommandLine;          // Complete command
+                    CleanArguments = RawCommandLine.Remove(RawCommandLine.IndexOf(Executable), Executable.Length).TrimStart('"').Substring(1);
+                    ModFile = args[0];
+                    CleanArguments = CleanArguments.Substring(ModFile.Length).TrimStart();
+                }
+                string ModFilePath = Path.Combine("ldata", ModFile + ".modification");
+                if (!string.IsNullOrWhiteSpace(ModFile) && File.Exists(ModFilePath))
+                {
+                    ModInstructions Script = new ModInstructions(ModFilePath);
 
                     ProcessStartInfo info = new ProcessStartInfo()
                     {
                         FileName = "DKREIGN.EXE",
-                        Arguments = argsOnly,
+
+                        // pass the raw argument string after the mod/launch profile name
+                        Arguments = CleanArguments,
+
+                        // this is important to preserving the process chain so overlays like Steam work
                         UseShellExecute = false,
                     };
 
-                    Process proc = Process.Start(info);
+                    Process DarkReignProcess = Process.Start(info);
 
-                    proc.WaitForInputIdle(150); // hope this is long enough for the game's EXE unpacker to run
+                    // Wait 150 MS or till user input is possible.
+                    // If the computer is so fast it puts the CD check up before 150 MS, it will stop waiting
+                    // If the computer is so slow that it hasn't decompressed the injection will be overwritten by it
+                    DarkReignProcess.WaitForInputIdle(150);
 
-                    SuspendProcess(proc);
-                    if (Inject.Count > 0)
-                    {
-                        IntPtr ret = OpenProcess(0x1F0FFF, false, proc.Id);
+                    // Write our ASM changes, hopefully after the decompression
+                    Script.DoAsmInjections(DarkReignProcess);
 
-                        foreach (Tuple<IntPtr, byte[]> asm in Inject)
-                        {
-                            WriteMemory(ret, asm.Item1, asm.Item2);
-                        }
-                    }
-                    ResumeProcess(proc);
-
-                    bool doneDialogFix = false;
+                    bool BrokeOutOfSubloop = false;
                     for (; ; )
                     {
-                        // if we have a main window with a title
-                        if ((proc.MainWindowTitle?.Length ?? 0) > 0) // if we didn't see the DR window but we see another one, we're good
+                        if (DarkReignProcess.MainWindowHandle != IntPtr.Zero)
                         {
+                            // The main window is open, so we must have injected our ASM successfully
                             break;
                         }
 
-                        // check for the popup
-                        /*if (EnumerateProcessWindowHandles(proc.Id).Count() > 0)
-                        {
-                            
-                        }*/
                         try
                         {
-                            foreach (var handle in EnumerateProcessWindowHandles(proc.Id))
+                            foreach (var WindowHandle in DarkReignProcess.EnumerateWindowHandles())
                             {
-                                StringBuilder message = new StringBuilder(1000);
-                                SendMessage(handle, WM_GETTEXT, message.Capacity, message);
-                                string messageX = message.ToString();
-                                if (messageX == "Dark Reign")
+                                StringBuilder Message = new StringBuilder(1000);
+                                User32.GetClassName(WindowHandle, Message, Message.Capacity);
+                                string MessageString = Message.ToString();
+
+                                // Are we a dialog box?
+                                if (MessageString == "#32770")
                                 {
-                                    // something went wrong, let's force apply the ASM a 2nd time
-                                    SuspendProcess(proc);
-                                    if (Inject.Count > 0)
-                                    {
-                                        IntPtr ret = OpenProcess(0x1F0FFF, false, proc.Id);
+                                    // We see a dialog box, which means our ASM injection was too early
+                                    // Apply the injections again
+                                    Script.DoAsmInjections(DarkReignProcess);
 
-                                        foreach (Tuple<IntPtr, byte[]> asm in Inject)
-                                        {
-                                            WriteMemory(ret, asm.Item1, asm.Item2);
-                                        }
-                                    }
-                                    ResumeProcess(proc);
+                                    // Send the MessageBoxA the Yes button ID code, this will work reguardless of localization
+                                    User32.SendMessage(WindowHandle, User32.WM_COMMAND, (User32.BN_CLICKED << 16) | User32.IDYES, IntPtr.Zero);
 
-                                    IntPtr hwndChild = FindWindowEx((IntPtr)handle, IntPtr.Zero, "#32770", "Yes");
-                                    //SendMessage(hwndChild, BN_CLICKED, 0, IntPtr.Zero);
-                                    SendMessage(handle, WM_COMMAND, (BN_CLICKED << 16) | IDYES, hwndChild);
-
-                                    doneDialogFix = true;
+                                    // Make sure our break out of this loop applies to the parent loop too
+                                    BrokeOutOfSubloop = true;
                                     break;
                                 }
                             }
                         }
-                        catch(ArgumentException) { break; }
+                        catch (ArgumentException)
+                        {
+                            // The assumption here is that if this failed, it's because the process isn't open, so we should just give up
+                            break;
+                        }
 
-                        if (doneDialogFix) break;
+                        // sublook broke out, so we can too
+                        if (BrokeOutOfSubloop) break;
 
+                        // loop throttle
                         Thread.Sleep(10);
                     }
 
-                    //proc.WaitForExit();
-                    while(proc != null && !proc.HasExited)
+                    // let's wait for the process to exit by polling instead of using WaitForExit()
+                    // this seems to work better if the process is already closed or does something strange
+                    while (DarkReignProcess != null && !DarkReignProcess.HasExited)
                     {
                         Thread.Sleep(1000);
                     }
@@ -181,96 +110,16 @@ namespace DarkReignLauncher
             }
         }
 
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
 
 
-        public static byte[] StringToByteArray(string hex)
-        {
-            return Enumerable.Range(0, hex.Length)
-                             .Where(x => x % 2 == 0)
-                             .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                             .ToArray();
-        }
+        
 
-        public static bool WriteMemory(IntPtr pid, IntPtr lpBaseAddress, byte[] value)
-        {
-            return WriteProcessMemory(pid, lpBaseAddress, value, Marshal.SizeOf<byte>() * value.Length, out var bytesread);
-        }
+        
 
-        private static void SuspendProcess(Process process)
-        {
-            if (process.ProcessName == string.Empty)
-                return;
 
-            foreach (ProcessThread pT in process.Threads)
-            {
-                IntPtr pOpenThread = OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
 
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
 
-                SuspendThread(pOpenThread);
 
-                CloseHandle(pOpenThread);
-            }
-        }
-
-        public static void ResumeProcess(Process process)
-        {
-            if (process.ProcessName == string.Empty)
-                return;
-
-            foreach (ProcessThread pT in process.Threads)
-            {
-                IntPtr pOpenThread = OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                var suspendCount = 0;
-                do
-                {
-                    suspendCount = ResumeThread(pOpenThread);
-                } while (suspendCount > 0);
-
-                CloseHandle(pOpenThread);
-            }
-        }
-
-        private const uint WM_GETTEXT = 0x000D;
-        private const uint WM_COMMAND = 0x0111;
-        private const uint BN_CLICKED = 245;
-        //private const int IDOK = 1;
-        private const int IDYES = 6;
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam,
-            StringBuilder lParam);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, uint wParam,
-            IntPtr lParam);
-
-        delegate bool EnumThreadDelegate(IntPtr hWnd, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        static extern bool EnumThreadWindows(int dwThreadId, EnumThreadDelegate lpfn,
-            IntPtr lParam);
-
-        static IEnumerable<IntPtr> EnumerateProcessWindowHandles(int processId)
-        {
-            var handles = new List<IntPtr>();
-
-            foreach (ProcessThread thread in Process.GetProcessById(processId).Threads)
-                EnumThreadWindows(thread.Id,
-                    (hWnd, lParam) => { handles.Add(hWnd); return true; }, IntPtr.Zero);
-
-            return handles;
-        }
+        
     }
 }
