@@ -104,11 +104,9 @@ namespace DarkReignLauncher
 
                     Process proc = Process.Start(info);
 
-                    proc.WaitForInputIdle(150);
-                    //proc.WaitForInputIdle();
+                    proc.WaitForInputIdle(150); // hope this is long enough for the game's EXE unpacker to run
 
                     SuspendProcess(proc);
-
                     if (Inject.Count > 0)
                     {
                         IntPtr ret = OpenProcess(0x1F0FFF, false, proc.Id);
@@ -118,15 +116,74 @@ namespace DarkReignLauncher
                             WriteMemory(ret, asm.Item1, asm.Item2);
                         }
                     }
-
                     ResumeProcess(proc);
 
-                    proc.WaitForExit();
+                    bool doneDialogFix = false;
+                    for (; ; )
+                    {
+                        // if we have a main window with a title
+                        if ((proc.MainWindowTitle?.Length ?? 0) > 0) // if we didn't see the DR window but we see another one, we're good
+                        {
+                            break;
+                        }
+
+                        // check for the popup
+                        /*if (EnumerateProcessWindowHandles(proc.Id).Count() > 0)
+                        {
+                            
+                        }*/
+                        try
+                        {
+                            foreach (var handle in EnumerateProcessWindowHandles(proc.Id))
+                            {
+                                StringBuilder message = new StringBuilder(1000);
+                                SendMessage(handle, WM_GETTEXT, message.Capacity, message);
+                                string messageX = message.ToString();
+                                if (messageX == "Dark Reign")
+                                {
+                                    // something went wrong, let's force apply the ASM a 2nd time
+                                    SuspendProcess(proc);
+                                    if (Inject.Count > 0)
+                                    {
+                                        IntPtr ret = OpenProcess(0x1F0FFF, false, proc.Id);
+
+                                        foreach (Tuple<IntPtr, byte[]> asm in Inject)
+                                        {
+                                            WriteMemory(ret, asm.Item1, asm.Item2);
+                                        }
+                                    }
+                                    ResumeProcess(proc);
+
+                                    IntPtr hwndChild = FindWindowEx((IntPtr)handle, IntPtr.Zero, "#32770", "Yes");
+                                    //SendMessage(hwndChild, BN_CLICKED, 0, IntPtr.Zero);
+                                    SendMessage(handle, WM_COMMAND, (BN_CLICKED << 16) | IDYES, hwndChild);
+
+                                    doneDialogFix = true;
+                                    break;
+                                }
+                            }
+                        }
+                        catch(ArgumentException) { break; }
+
+                        if (doneDialogFix) break;
+
+                        Thread.Sleep(10);
+                    }
+
+                    //proc.WaitForExit();
+                    while(proc != null && !proc.HasExited)
+                    {
+                        Thread.Sleep(1000);
+                    }
 
                     return;
                 }
             }
         }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
+
 
         public static byte[] StringToByteArray(string hex)
         {
@@ -183,6 +240,37 @@ namespace DarkReignLauncher
 
                 CloseHandle(pOpenThread);
             }
+        }
+
+        private const uint WM_GETTEXT = 0x000D;
+        private const uint WM_COMMAND = 0x0111;
+        private const uint BN_CLICKED = 245;
+        //private const int IDOK = 1;
+        private const int IDYES = 6;
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam,
+            StringBuilder lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, uint wParam,
+            IntPtr lParam);
+
+        delegate bool EnumThreadDelegate(IntPtr hWnd, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        static extern bool EnumThreadWindows(int dwThreadId, EnumThreadDelegate lpfn,
+            IntPtr lParam);
+
+        static IEnumerable<IntPtr> EnumerateProcessWindowHandles(int processId)
+        {
+            var handles = new List<IntPtr>();
+
+            foreach (ProcessThread thread in Process.GetProcessById(processId).Threads)
+                EnumThreadWindows(thread.Id,
+                    (hWnd, lParam) => { handles.Add(hWnd); return true; }, IntPtr.Zero);
+
+            return handles;
         }
     }
 }

@@ -1,0 +1,2 @@
+57B363	B8	Set instruction to MOV EAX,XXXX
+57B364	00020000	Move stock game button's Y position off screen
