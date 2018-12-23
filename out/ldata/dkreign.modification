@@ -1,4 +1,4 @@
-Dark Reign
+TITLE	Dark Reign
 ASM	fixed_instead_of_disc
 ASM	force_disc_drk
-ASM	hide_exp_sp_bttn
+MOD	hide_exp_sp_bttn

@@ -9,18 +9,30 @@ namespace DarkReignLauncher
 {
     public class ModInstructions
     {
+        public string Title { get; set; }
         public List<Tuple<IntPtr, byte[]>> AsmInjections { get; set; }
+        public List<string> ModPaths { get; set; }
 
         public ModInstructions(string ModFilePath)
         {
+            Title = Path.GetFileNameWithoutExtension(ModFilePath);
             AsmInjections = new List<Tuple<IntPtr, byte[]>>();
+            ModPaths = new List<string>();
 
             string[] lines = File.ReadAllLines(ModFilePath);
-            for (int i = 1; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
                 string[] lineParts = lines[i].Split(new char[] { '\t' });
                 switch (lineParts[0])
                 {
+                    case "TITLE":
+                        {
+                            if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
+                            {
+                                Title = lineParts[1];
+                            }
+                        }
+                        break;
                     case "ASM":
                         {
                             string AsmFile = Path.Combine("ldata", lineParts[1] + ".asmpatch");
@@ -36,6 +48,19 @@ namespace DarkReignLauncher
                                     AsmInjections.Add(new Tuple<IntPtr, byte[]>(new IntPtr(addr), data));
                                 }
                             }
+                        }
+                        break;
+                    case "MOD":
+                        {
+                            try
+                            {
+                                string ModFolder = Path.Combine("mods", lineParts[1]);
+                                if (Directory.Exists(ModFolder))
+                                {
+                                    ModPaths.Add(lineParts[1]);
+                                }
+                            }
+                            catch { }
                         }
                         break;
                 }
@@ -68,6 +93,43 @@ namespace DarkReignLauncher
                 }
             }
             proc.Resume();
+        }
+
+        public void DoFunctionHook(Process proc)
+        {
+            // Will contain the name of the IPC server channel
+            string channelName = null;
+
+            // Create the IPC server using the FileMonitorIPC.ServiceInterface class as a singleton
+            EasyHook.RemoteHooking.IpcCreateServer<DarkHook.ServerInterface>(ref channelName, System.Runtime.Remoting.WellKnownObjectMode.Singleton);
+
+            // Get the full path to the assembly we want to inject into the target process
+            string injectionLibrary = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "DarkHook.dll");
+
+            try
+            {
+                // Injecting into existing process by Id
+                if (proc.Id > 0)
+                {
+                    Console.WriteLine("Attempting to inject into process {0}", proc.Id);
+
+                    // inject into existing process
+                    EasyHook.RemoteHooking.Inject(
+                        proc.Id,            // ID of process to inject into
+                        injectionLibrary,   // 32-bit library to inject (if target is 32-bit)
+                        injectionLibrary,   // 64-bit library to inject (if target is 64-bit)
+                        channelName,        // the parameters to pass into injected library
+                        ModPaths
+                    );
+                }
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("There was an error while injecting into target:");
+                Console.ResetColor();
+                Console.WriteLine(e.ToString());
+            }
         }
     }
 }

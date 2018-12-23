@@ -1,6 +1,9 @@
-﻿using System;
+﻿using EasyHook;
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
@@ -39,6 +42,11 @@ namespace DarkReignLauncher
 
                     Process DarkReignProcess = Process.Start(info);
 
+                    if (DarkReignProcess != null && !DarkReignProcess.HasExited)
+                    {
+                        Script.DoFunctionHook(DarkReignProcess);
+                    }
+
                     // Wait 150 MS or till user input is possible.
                     // If the computer is so fast it puts the CD check up before 150 MS, it will stop waiting
                     // If the computer is so slow that it hasn't decompressed the injection will be overwritten by it
@@ -48,7 +56,8 @@ namespace DarkReignLauncher
                     Script.DoAsmInjections(DarkReignProcess);
 
                     bool BrokeOutOfSubloop = false;
-                    for (; ; )
+                    //for (; ; )
+                    while (DarkReignProcess != null && !DarkReignProcess.HasExited)
                     {
                         if (DarkReignProcess.MainWindowHandle != IntPtr.Zero)
                         {
@@ -100,21 +109,12 @@ namespace DarkReignLauncher
                         Thread.Sleep(1000);
                     }
 
+                    Console.ReadKey(true);
+
                     return;
                 }
             }
+
         }
-
-
-
-        
-
-        
-
-
-
-
-
-        
     }
 }

@@ -12,8 +12,8 @@ namespace DarkReignLauncher
         //internal const int IDOK = 1;
         internal const int IDYES = 6;
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        internal static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam, StringBuilder lParam);
+        //[DllImport("user32.dll", CharSet = CharSet.Auto)]
+        //internal static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam, StringBuilder lParam);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, uint wParam, IntPtr lParam);

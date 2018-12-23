@@ -1,3 +1,0 @@
-57B364	40C06000	Move stock game button's Y position to that of the expansion button
-57B2D7	B8	Set instruction to MOV EAX,XXXX
-57B2D8	00020000	Move expansion button's Y position off screen
