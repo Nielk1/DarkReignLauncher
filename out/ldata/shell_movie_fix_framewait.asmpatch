@@ -1,0 +1,26 @@
+; this nops the entire fullscreen check so we will fall right through to full screen video logic
+58B910	90	don't do a call
+58B911	90909090	don't call to VideoFullScreen
+58B915	9090	don't do the return test
+58B917	9090	don't jump if not fullscreen, assume fullscreen on redsmkPlayMovie
+
+; overwrite some of our NOPing to move a function-ref into ebx
+58B910	8B1D	; mov ebx,
+58B912	40897600	; ds:_SmackWait@4 ; SmackWait(x)
+
+; Add missing SmackWait
+58B93F	56	; 0058B93F 56                   .text:0058BB3A push    esi
+58B940	FFD3	; 0058B940 FF D3                .text:0058BB3B call    ebx ; SmackWait(x)              ; SmackWait(x)
+58B942	85C0	; 0058B942 85 C0                .text:0058BB3D test    eax, eax
+58B944	75F9	; 0058B944 75 F9                .text:0058BB3F jnz     short loc_58BB3A
+
+; Restore Removed Logic
+58B946	8B460C	; 0058B946 8B 46 0C             .text:0058B93F mov     eax, [esi+0Ch]
+58B949	8B8E74030000	; 0058B949 8B 8E 74 03 00 00    .text:0058B942 mov     ecx, [esi+374h]
+58B94F	48	; 0058B94F 48                   .text:0058B948 dec     eax
+58B950	3BC1	; 0058B950 3B C1                .text:0058B949 cmp     eax, ecx
+58B952	765F	; 0058B952 76 66                .text:0058B94B jbe     short close_smack_and_return
+58B954	E877FAFFFF	; 0058B954 E8 7E FA FF FF       .text:0058B94D call    redwinEvent
+58B959	85C0	; 0058B959 85 C0                .text:0058B952 test    eax, eax
+58B95B	74CE	; 0058B95B 74 D5                .text:0058B954 jz      short renderloop;loc_58B92B
+58B95D	EB54	; 0058B95D EB 5B                .text:0058B956 jmp     short close_smack_and_return

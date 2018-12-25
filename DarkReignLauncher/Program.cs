@@ -109,7 +109,7 @@ namespace DarkReignLauncher
                         Thread.Sleep(1000);
                     }
 
-                    Console.ReadKey(true);
+                    //Console.ReadKey(true);
 
                     return;
                 }

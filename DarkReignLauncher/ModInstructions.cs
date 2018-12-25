@@ -12,12 +12,14 @@ namespace DarkReignLauncher
         public string Title { get; set; }
         public List<Tuple<IntPtr, byte[]>> AsmInjections { get; set; }
         public List<string> ModPaths { get; set; }
+        public string SaveFolder { get; set; }
 
         public ModInstructions(string ModFilePath)
         {
             Title = Path.GetFileNameWithoutExtension(ModFilePath);
             AsmInjections = new List<Tuple<IntPtr, byte[]>>();
             ModPaths = new List<string>();
+            SaveFolder = null;
 
             string[] lines = File.ReadAllLines(ModFilePath);
             for (int i = 0; i < lines.Length; i++)
@@ -33,6 +35,14 @@ namespace DarkReignLauncher
                             }
                         }
                         break;
+                    case "SAVE":
+                        {
+                            if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
+                            {
+                                SaveFolder = lineParts[1];
+                            }
+                        }
+                        break;
                     case "ASM":
                         {
                             string AsmFile = Path.Combine("ldata", lineParts[1] + ".asmpatch");
@@ -42,10 +52,13 @@ namespace DarkReignLauncher
                                 foreach (string asmLine in asmLines)
                                 {
                                     string[] asmLineParts = asmLine.Split(new char[] { '\t' }, 3);
-                                    int addr = Convert.ToInt32(asmLineParts[0], 16);
-                                    byte[] data = StringToByteArray(asmLineParts[1]);
+                                    if (asmLineParts.Length > 1) // at least 2 parts
+                                    {
+                                        int addr = Convert.ToInt32(asmLineParts[0], 16);
+                                        byte[] data = StringToByteArray(asmLineParts[1]);
 
-                                    AsmInjections.Add(new Tuple<IntPtr, byte[]>(new IntPtr(addr), data));
+                                        AsmInjections.Add(new Tuple<IntPtr, byte[]>(new IntPtr(addr), data));
+                                    }
                                 }
                             }
                         }
@@ -119,7 +132,8 @@ namespace DarkReignLauncher
                         injectionLibrary,   // 32-bit library to inject (if target is 32-bit)
                         injectionLibrary,   // 64-bit library to inject (if target is 64-bit)
                         channelName,        // the parameters to pass into injected library
-                        ModPaths
+                        ModPaths,
+                        SaveFolder??string.Empty
                     );
                 }
             }

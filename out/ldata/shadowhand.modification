@@ -1,4 +1,5 @@
 TITLE	Dark Reign: Rise of the Shadowhand
 ASM	fixed_instead_of_disc
 ASM	force_disc_exp
+ASM	shell_movie_fix_framewait
 MOD	hide_drk_sp_bttn
