@@ -1,0 +1,133 @@
+﻿<Window x:Class="DarkReignLauncher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:bot="clr-namespace:PixelLab.Wpf.Transitions;assembly=PixelLab.Wpf"
+        xmlns:local="clr-namespace:DarkReignLauncher"
+        mc:Ignorable="d"
+        Title="Dark Reign Launcher" Height="600" Width="800"
+        SourceInitialized="Window_SourceInitialized"
+        MouseDown="Window_MouseDown"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <sys:Int32 x:Key="CornerSize">15</sys:Int32>
+        <sys:Double x:Key="CornerSizeD">15</sys:Double>
+        <sys:Int32 x:Key="CornerMargin">5</sys:Int32>
+        <SolidColorBrush x:Key="TranslucentGray" Color="LightGray" Opacity="0.3" />
+        <SolidColorBrush x:Key="TranslucentGray2" Color="LightGray" Opacity="0.2" />
+        <Style x:Key="TransparentStyle" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent">
+                            <ContentPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type ResizeGrip}">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ResizeGrip}">
+                        <Polygon StrokeThickness="1"
+                                 Stroke="{DynamicResource TranslucentGray}"
+                                 Fill="{DynamicResource TranslucentGray2}"
+                                 Margin="{Binding Mode=OneWay, Source={StaticResource CornerMargin}}">
+                            <Polygon.Points>
+                                <Point X="{StaticResource CornerSizeD}" Y="{StaticResource CornerSizeD}"/>
+                                <Point X="{StaticResource CornerSizeD}" Y="0"/>
+                                <Point X="0" Y="{StaticResource CornerSizeD}"/>
+                            </Polygon.Points>
+                        </Polygon>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <bot:TransitionPresenter x:Name="ParalaxBackground" Margin="-15">
+            <bot:TransitionPresenter.Transition>
+                <bot:FadeTransition Duration="00:00:00.5"/>
+            </bot:TransitionPresenter.Transition>
+            <bot:TransitionPresenter.RenderTransform>
+                <TransformGroup>
+                    <TranslateTransform X="0" Y="0"/>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                    <RotateTransform Angle="0"/>
+                </TransformGroup>
+            </bot:TransitionPresenter.RenderTransform>
+        </bot:TransitionPresenter>
+        <bot:TransitionPresenter x:Name="ParalaxLogo" Margin="100,10,100,100">
+            <bot:TransitionPresenter.Transition>
+                <bot:FadeTransition Duration="00:00:00.5"/>
+            </bot:TransitionPresenter.Transition>
+            <bot:TransitionPresenter.RenderTransform>
+                <TransformGroup>
+                    <TranslateTransform X="0" Y="0"/>
+                    <RotateTransform Angle="0"/>
+                </TransformGroup>
+            </bot:TransitionPresenter.RenderTransform>
+        </bot:TransitionPresenter>
+        <Border Margin="0" BorderThickness="1" BorderBrush="{DynamicResource TranslucentGray}">
+            <Border Margin="{Binding Mode=OneWay, Source={StaticResource CornerMargin}}" BorderThickness="1">
+                <Grid>
+                    <Button Name="CloseButton"
+                            Background="Transparent" 
+                            Foreground="White" 
+                            FontFamily="Tw Cen MT Condensed" 
+                            Width="12"
+                            Height="12"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Click="CloseButton_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Canvas>
+                                    <Path Name="CloseButtonPath"
+                                          Data="M0,0 L1,1 M0,1 L1,0"
+                                          Stretch="Fill"
+                                          Stroke="{DynamicResource TranslucentGray}"
+                                          StrokeThickness="3"
+                                          Width="{StaticResource CornerSizeD}"
+                                          Height="{StaticResource CornerSizeD}" />
+                                </Canvas>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="CloseButtonPath" Property="Stroke" Value="Red" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{Binding Mode=OneWay, Source={StaticResource CornerSize}}"/>
+                            <ColumnDefinition Width="100*"/>
+                            <ColumnDefinition Width="{Binding Mode=OneWay, Source={StaticResource CornerSize}}"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="{Binding Mode=OneWay, Source={StaticResource CornerSize}}"/>
+                            <RowDefinition Height="100*"/>
+                            <RowDefinition Height="{Binding Mode=OneWay, Source={StaticResource CornerSize}}"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Column="0" Grid.Row="0">
+                            <Border BorderThickness="1,1,0,0" BorderBrush="{DynamicResource TranslucentGray}"/>
+                        </Grid>
+                        <Grid Grid.Column="0" Grid.Row="2">
+                            <Border BorderThickness="1,0,0,1" BorderBrush="{DynamicResource TranslucentGray}"/>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</Window>

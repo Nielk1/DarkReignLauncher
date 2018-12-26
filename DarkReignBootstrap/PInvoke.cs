@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace DarkReignLauncher
+namespace DarkReignBootstrap
 {
     class User32
     {

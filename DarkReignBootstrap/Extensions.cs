@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace DarkReignLauncher
+namespace DarkReignBootstrap
 {
     public static class Extensions
     {

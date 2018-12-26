@@ -13,7 +13,7 @@ namespace DarkHook
     {
         public void IsInstalled(int clientPID)
         {
-            Console.WriteLine("DarkReignLauncher has injected DarkHook into process {0}.\r\n", clientPID);
+            Console.WriteLine("DarkReignBootstrap has injected DarkHook into process {0}.\r\n", clientPID);
         }
 
         /// <summary>
