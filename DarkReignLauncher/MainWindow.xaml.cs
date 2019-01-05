@@ -1,9 +1,13 @@
-﻿using System;
+﻿using DarkReignBootstrap;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,51 +31,133 @@ namespace DarkReignLauncher
         TimeSpan ParalaxTimespan = new TimeSpan(0, 0, 0, 0, 50);
         TimeSpan ParalaxTimespan2 = new TimeSpan(0, 0, 0, 0, 500);
 
+        System.Windows.Threading.DispatcherTimer checkRestoreDefaultGraphics;
+
         const int ParalaxLim = 10;
 
-        System.Windows.Threading.DispatcherTimer dispatcherTimerTest;
+        enum Mode
+        {
+            Default,
+            Mod,
+            Mods,
+            Options,
+            Update,
+            About
+        }
+
+        Mode mode = Mode.Default;
+
+        ObservableCollection<LauncherMenuItem> CurrentMenuItems = new ObservableCollection<LauncherMenuItem>();
+        ObservableCollection<LauncherMenuItem> ModMenuItems = new ObservableCollection<LauncherMenuItem>();
+
+        ModListPanel MoreModsPanel;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            Image ParalaxBG = new Image();
-            //this.Background = new ImageBrush(new BitmapImage(new Uri(@"pack://siteoforigin:,,,/ldata/bg-norm.png")));
-            ParalaxBG.Source = new BitmapImage(new Uri(@"pack://siteoforigin:,,,/ldata/bg-norm.png"));
-            ParalaxBackground.Content = ParalaxBG;
-
-            Image ParalaxLogo_ = new Image();
-            ParalaxLogo_.Source = new BitmapImage(new Uri(@"pack://siteoforigin:,,,/ldata/logo-dkreign.png"));
-            ParalaxLogo.Content = ParalaxLogo_;
+            SetLogo("logo-patch.png");
+            SetBackground("bg-norm.png");
 
             this.Cursor = new Cursor(Application.GetResourceStream(new Uri("pack://application:,,,/dkreign.cur")).Stream);
+            
+            Binding binding1 = new Binding();
+            binding1.Source = CurrentMenuItems;
+            MenuItems.SetBinding(ItemsControl.ItemsSourceProperty, binding1);
+
+            string[] ModFiles = Directory.GetFiles("ldata", "*.modification", SearchOption.TopDirectoryOnly);
+            List<ModInstructions> Mods = ModFiles.Select(dr => new ModInstructions(dr)).ToList();
+
+            Mods.Where(dr => dr.TopMenu).OrderBy(dr => dr.Sort ?? string.Empty).ThenBy(dr => dr.Title).ToList().ForEach(dr =>
+            {
+                string Title = dr.Title;
+                //if (Title.StartsWith("Dark Reign:")) Title = Title.Substring(11).TrimStart();
+                CurrentMenuItems.Add(new LauncherMenuItem()
+                {
+                    ItemType = LauncherMenuItemType.Mod,
+                    Filename = dr.Filename,
+                    Text = Title,
+                    Note = dr.Note,
+                    Logo = dr.Logo,
+                    Background = dr.Background
+                });
+            });
+
+            CurrentMenuItems.Add(new LauncherMenuItem() {
+                ItemType = LauncherMenuItemType.Mods,
+                Text = "Mods",
+                Note = $"({Mods.Where(dr => !dr.TopMenu).Count()})",
+            });
+            CurrentMenuItems.Add(new LauncherMenuItem() { ItemType = LauncherMenuItemType.None });
+            CurrentMenuItems.Add(new LauncherMenuItem() { ItemType = LauncherMenuItemType.Options, Text = "Options" });
+            //CurrentMenuItems.Add(new LauncherMenuItem() { ItemType = LauncherMenuItemType.Update, Text = "Update" });
+            CurrentMenuItems.Add(new LauncherMenuItem() { ItemType = LauncherMenuItemType.About, Text = "About" });
+            CurrentMenuItems.Add(new LauncherMenuItem() { ItemType = LauncherMenuItemType.Exit, Text = "Exit" });
+
+            Mods.Where(dr => !dr.TopMenu).OrderBy(dr => dr.Sort ?? string.Empty).ThenBy(dr => dr.Title).ToList().ForEach(dr =>
+            {
+                string Title = dr.Title;
+                //if (Title.StartsWith("Dark Reign:")) Title = Title.Substring(11).TrimStart();
+                ModMenuItems.Add(new LauncherMenuItem()
+                {
+                    ItemType = LauncherMenuItemType.Mod,
+                    Filename = dr.Filename,
+                    Text = Title,
+                    Note = dr.Note,
+                    Logo = dr.Logo,
+                    Background = dr.Background
+                });
+            });
+
+            MoreModsPanel = new ModListPanel(ModMenuItems);
+
+            MoreModsPanel.MenuItem_MouseDown_Event += MenuItem_MouseDown_HandleItem;
+            MoreModsPanel.MenuItem_MouseEnter_Event += MenuItem_MouseEnter_HandleItem;
+            MoreModsPanel.MenuItem_MouseLeave_Event += MenuItem_MouseLeave_HandleItem;
 
             dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += dispatcherTimer_Tick;
             dispatcherTimer.Interval = ParalaxTimespan;
             dispatcherTimer.Start();
 
-
-            dispatcherTimerTest = new System.Windows.Threading.DispatcherTimer();
-            dispatcherTimerTest.Tick += dispatcherTimerTest_Tick;
-            dispatcherTimerTest.Interval = TimeSpan.FromSeconds(5);
-            dispatcherTimerTest.Start();
+            checkRestoreDefaultGraphics = new System.Windows.Threading.DispatcherTimer();
+            checkRestoreDefaultGraphics.Tick += CheckRestoreDefaultGraphics_Tick;
+            checkRestoreDefaultGraphics.Interval = TimeSpan.FromSeconds(0.1);
         }
 
-        static Random rnd = new Random();
-        private void dispatcherTimerTest_Tick(object sender, EventArgs e)
+        private void SetLogo(string filename)
         {
-            string[] BGs = Directory.GetFiles("ldata", "bg-*.png", SearchOption.TopDirectoryOnly);
-            int r = rnd.Next(BGs.Length);
-            Image ParalaxBG = new Image();
-            ParalaxBG.Source = new BitmapImage(new Uri($@"pack://siteoforigin:,,,/ldata/{System.IO.Path.GetFileName(BGs[r])}"));
-            ParalaxBackground.Content = ParalaxBG;
+            Uri path = new Uri($@"pack://siteoforigin:,,,/ldata/{filename}");
+            Image ParalaxLOGO = new Image();
+            ParalaxLOGO.Source = new BitmapImage(path);
+            ParalaxLOGO.SnapsToDevicePixels = true;
+            ParalaxLOGO.HorizontalAlignment = HorizontalAlignment.Right;
+            ParalaxLOGO.VerticalAlignment = VerticalAlignment.Bottom;
+            GameLogo.Content = ParalaxLOGO;
+        }
 
-            string[] LOGOs = Directory.GetFiles("ldata", "logo-*.png", SearchOption.TopDirectoryOnly);
-            r = rnd.Next(LOGOs.Length);
-            Image ParalaxLogo_ = new Image();
-            ParalaxLogo_.Source = new BitmapImage(new Uri($@"pack://siteoforigin:,,,/ldata/{System.IO.Path.GetFileName(LOGOs[r])}"));
-            ParalaxLogo.Content = ParalaxLogo_;
+        private void SetBackground(string filename)
+        {
+            Uri path = new Uri($@"pack://siteoforigin:,,,/ldata/{filename}");
+            Image ParalaxBG = new Image();
+            ParalaxBG.Source = new BitmapImage(path);
+            ParalaxBackground.Content = ParalaxBG;
+        }
+
+        private void SetInfo(FrameworkElement elem)
+        {
+            if(elem != null)
+            {
+                Border tmp = (elem.Parent as Border);
+                if (tmp != null) tmp.Child = null;
+
+                Border tmpBorder = new Border();
+                tmpBorder.Child = elem;
+                InfoBox.Content = tmpBorder;
+                return;
+            }
+            FrameworkElement tmpElem = new FrameworkElement();
+            InfoBox.Content = tmpElem;
         }
 
         [DllImport("user32.dll")]
@@ -100,11 +186,6 @@ namespace DarkReignLauncher
         {
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
         }
 
         Win32Point curPoint = new Win32Point();
@@ -163,7 +244,7 @@ namespace DarkReignLauncher
                     offsetY /= -4;
                     ang /= -2;
 
-                    var t = (ParalaxLogo.RenderTransform as TransformGroup);
+                    var t = (ParalaxContent.RenderTransform as TransformGroup);
                     var t1 = (t.Children[0] as TranslateTransform);
                     var t3 = (t.Children[1] as RotateTransform);
 
@@ -191,5 +272,185 @@ namespace DarkReignLauncher
                 }
             }
         }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void MenuItem_MouseEnter(object sender, MouseEventArgs e)
+        {
+            LauncherMenuItem item = (sender as FrameworkElement)?.DataContext as LauncherMenuItem;
+            if (item == null) return;
+            MenuItem_MouseEnter_HandleItem(item);
+        }
+        private void MenuItem_MouseEnter_HandleItem(LauncherMenuItem item)
+        {
+            switch (item.ItemType)
+            {
+                case LauncherMenuItemType.Mod:
+                    {
+                        if (!string.IsNullOrWhiteSpace(item.Logo)) SetLogo(item.Logo);
+                        if (!string.IsNullOrWhiteSpace(item.Background)) SetBackground(item.Background);
+                        mode = Mode.Mod;
+                    }
+                    break;
+            }
+        }
+
+        private void MenuItem_MouseLeave(object sender, MouseEventArgs e)
+        {
+            LauncherMenuItem item = (sender as FrameworkElement)?.DataContext as LauncherMenuItem;
+            if (item == null) return;
+            MenuItem_MouseLeave_HandleItem(item);
+        }
+        private void MenuItem_MouseLeave_HandleItem(LauncherMenuItem item)
+        {
+            switch (item.ItemType)
+            {
+                case LauncherMenuItemType.Mod:
+                    {
+                        checkRestoreDefaultGraphics.Stop();
+                        mode = Mode.Default;
+                        checkRestoreDefaultGraphics.Start();
+                    }
+                    break;
+            }
+        }
+
+        private void MenuItem_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            LauncherMenuItem item = (sender as FrameworkElement)?.DataContext as LauncherMenuItem;
+            if (item == null) return;
+            MenuItem_MouseDown_HandleItem(item);
+        }
+        private void MenuItem_MouseDown_HandleItem(LauncherMenuItem item)
+        {
+            switch (item.ItemType)
+            {
+                case LauncherMenuItemType.Exit:
+                    Close();
+                    break;
+                case LauncherMenuItemType.Mod:
+                    LaunchMod(item.Filename);
+                    break;
+                case LauncherMenuItemType.Mods:
+                    if (mode == Mode.Mods)
+                    {
+                        SetInfo(null);
+                        mode = Mode.Default;
+                    }
+                    else
+                    {
+                        SetInfo(MoreModsPanel);
+                        mode = Mode.Mods;
+                    }
+                    break;
+                case LauncherMenuItemType.Options:
+                    if (mode == Mode.Options)
+                    {
+                        SetInfo(null);
+                        mode = Mode.Default;
+                    }
+                    else
+                    {
+                        SetInfo(new FrameworkElement());
+                        mode = Mode.Options;
+                    }
+                    break;
+                case LauncherMenuItemType.Update:
+                    if (mode == Mode.Update)
+                    {
+                        SetInfo(null);
+                        mode = Mode.Default;
+                    }
+                    else
+                    {
+                        SetInfo(new FrameworkElement());
+                        mode = Mode.Update;
+                    }
+                    break;
+                case LauncherMenuItemType.About:
+                    if (mode == Mode.About)
+                    {
+                        SetInfo(null);
+                        mode = Mode.Default;
+                    }
+                    else
+                    {
+                        TextBlock block = new TextBlock();
+                        block.Padding = new Thickness(5);
+                        block.Text = @"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+                        block.TextWrapping = TextWrapping.Wrap;
+                        SetInfo(block);
+                        mode = Mode.About;
+                    }
+                    break;
+
+            }
+        }
+
+        private void CheckRestoreDefaultGraphics_Tick(object sender, EventArgs e)
+        {
+            if(mode == Mode.Default)
+            {
+                SetLogo("logo-patch.png");
+                SetBackground("bg-norm.png");
+            }
+            checkRestoreDefaultGraphics.Stop();
+        }
+
+        private void LaunchMod(string modname)
+        {
+            string exe = Environment.GetCommandLineArgs()[0]; // Command invocation part
+            string rawCmd = Environment.CommandLine;          // Complete command
+            //string argsOnly = rawCmd.Remove(rawCmd.IndexOf(exe), exe.Length).TrimStart('"').Substring(1);
+
+            ProcessStartInfo info = new ProcessStartInfo()
+            {
+                FileName = "bootstrap.exe",
+                Arguments = modname,
+                UseShellExecute = false,
+            };
+
+            Process proc = Process.Start(info);
+
+            this.Hide();
+            
+            // let's wait for the process to exit by polling instead of using WaitForExit()
+            // this seems to work better if the process is already closed or does something strange
+            while (proc != null && !proc.HasExited)
+            {
+                Thread.Sleep(1000);
+            }
+
+            this.Close();
+        }
+    }
+
+    public class LauncherMenuItem
+    {
+        public LauncherMenuItemType ItemType { get; set; }
+        public string Filename { get; set; }
+
+        public string Text { get { return _Text ?? " "; } set { _Text = value; } }
+        private string _Text;
+        public string Note { get { return _Note ?? string.Empty; } set { _Note = value; } }
+        private string _Note;
+        public bool ShowNote { get { return !string.IsNullOrWhiteSpace(Note); } }
+
+        public string Logo { get; set; }
+        public string Background { get; set; }
+    }
+
+    public enum LauncherMenuItemType
+    {
+        None,
+        Exit,
+        Mod,
+        Mods,
+        Options,
+        Update,
+        About
     }
 }

@@ -9,13 +9,21 @@ namespace DarkReignBootstrap
 {
     public class ModInstructions
     {
+        public string Filename { get; set; }
         public string Title { get; set; }
+        public string Sort { get; set; }
+        public string Note { get; set; }
+        public string Logo { get; set; }
+        public string Background { get; set; }
+        public bool TopMenu { get; set; }
         public List<Tuple<IntPtr, byte[]>> AsmInjections { get; set; }
         public List<string> ModPaths { get; set; }
         public string SaveFolder { get; set; }
 
         public ModInstructions(string ModFilePath)
         {
+            Filename = Path.GetFileNameWithoutExtension(ModFilePath);
+
             Title = Path.GetFileNameWithoutExtension(ModFilePath);
             AsmInjections = new List<Tuple<IntPtr, byte[]>>();
             ModPaths = new List<string>();
@@ -32,6 +40,46 @@ namespace DarkReignBootstrap
                             if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
                             {
                                 Title = lineParts[1];
+                            }
+                        }
+                        break;
+                    case "MENU":
+                        {
+                            if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
+                            {
+                                TopMenu = lineParts[1].ToUpperInvariant() == "TOP";
+                            }
+                        }
+                        break;
+                    case "SORT":
+                        {
+                            if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
+                            {
+                                Sort = lineParts[1];
+                            }
+                        }
+                        break;
+                    case "NOTE":
+                        {
+                            if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
+                            {
+                                Note = lineParts[1];
+                            }
+                        }
+                        break;
+                    case "LOGO":
+                        {
+                            if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
+                            {
+                                Logo = lineParts[1];
+                            }
+                        }
+                        break;
+                    case "BACK":
+                        {
+                            if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
+                            {
+                                Background = lineParts[1];
                             }
                         }
                         break;

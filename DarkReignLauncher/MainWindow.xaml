@@ -7,17 +7,20 @@
         xmlns:bot="clr-namespace:PixelLab.Wpf.Transitions;assembly=PixelLab.Wpf"
         xmlns:local="clr-namespace:DarkReignLauncher"
         mc:Ignorable="d"
-        Title="Dark Reign Launcher" Height="600" Width="800"
+        Title="Dark Reign Launcher"
+        Height="600" Width="800"
+        MinHeight="600" MinWidth="800"
         SourceInitialized="Window_SourceInitialized"
         MouseDown="Window_MouseDown"
         AllowsTransparency="True"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen" Foreground="White" Background="Black">
     <Window.Resources>
         <sys:Int32 x:Key="CornerSize">15</sys:Int32>
         <sys:Double x:Key="CornerSizeD">15</sys:Double>
         <sys:Int32 x:Key="CornerMargin">5</sys:Int32>
+        <sys:Int32 x:Key="ContentMargin">15</sys:Int32>
         <SolidColorBrush x:Key="TranslucentGray" Color="LightGray" Opacity="0.3" />
         <SolidColorBrush x:Key="TranslucentGray2" Color="LightGray" Opacity="0.2" />
         <Style x:Key="TransparentStyle" TargetType="{x:Type Button}">
@@ -64,7 +67,145 @@
                 </TransformGroup>
             </bot:TransitionPresenter.RenderTransform>
         </bot:TransitionPresenter>
-        <bot:TransitionPresenter x:Name="ParalaxLogo" Margin="100,10,100,100">
+        <Border x:Name="ParalaxContent">
+            <Border.RenderTransform>
+                <TransformGroup>
+                    <TranslateTransform X="0" Y="0"/>
+                    <RotateTransform Angle="0"/>
+                </TransformGroup>
+            </Border.RenderTransform>
+            <Grid Margin="{Binding Mode=OneWay, Source={StaticResource ContentMargin}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
+                <bot:TransitionPresenter x:Name="GameLogo"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Stretch"
+                                         Grid.Row="0">
+                    <bot:TransitionPresenter.Transition>
+                        <bot:FadeTransition Duration="00:00:00.5"/>
+                    </bot:TransitionPresenter.Transition>
+                </bot:TransitionPresenter>
+                <Viewbox Grid.Row="1"
+                         Stretch="Fill">
+                    <!--<StackPanel VerticalAlignment="Top"
+                                    HorizontalAlignment="Stretch"
+                                    x:Name="MenuItems"
+                                    Margin="10,0,0,0"
+                                    Width="352"
+                                    Height="300">
+                            <StackPanel.Resources>
+                                <Style TargetType="{x:Type local:OutlinedTextBlock}">
+                                    <Setter Property="FontFamily" Value="Verdana"/>
+                                    <Setter Property="FontSize" Value="15pt"/>
+                                    <Setter Property="FontWeight" Value="Black"/>
+                                    <Setter Property="TextWrapping" Value="NoWrap"/>
+                                    <Setter Property="Fill" Value="White"/>
+                                    <Setter Property="Stroke" Value="Black"/>
+                                    <Setter Property="StrokeThickness" Value="1"/>
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="Border.IsMouseOver" Value="True">
+                                            <Setter Property="Fill" Value="Orange"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Resources>
+                            <local:OutlinedTextBlock MouseDown="DarkReign_MouseDown">Dark Reign</local:OutlinedTextBlock>
+                            <local:OutlinedTextBlock MouseDown="Shadowhand_MouseDown">Rise of the Shadowhand</local:OutlinedTextBlock>
+                            <local:OutlinedTextBlock>Mods</local:OutlinedTextBlock>
+                            <local:OutlinedTextBlock>Update</local:OutlinedTextBlock>
+                            <local:OutlinedTextBlock>About</local:OutlinedTextBlock>
+                            <local:OutlinedTextBlock MouseDown="OutlinedTextBlock_MouseDown">Exit</local:OutlinedTextBlock>
+                        </StackPanel>-->
+                    <ItemsControl VerticalAlignment="Top"
+                                  HorizontalAlignment="Stretch"
+                                  x:Name="MenuItems"
+                                  Margin="10,0,0,0"
+                                  Width="352"
+                                  Height="300">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid MouseEnter="MenuItem_MouseEnter"
+                                      MouseLeave="MenuItem_MouseLeave"
+                                      MouseDown="MenuItem_MouseDown"
+                                      Background="Transparent"
+                                      DataContext="{Binding }">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="12*"/>
+                                        <ColumnDefinition Width="3*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <local:OutlinedTextBlock x:Name="MenuItemText"
+                                                             Text="{Binding Text}"
+                                                             FontFamily="Verdana"
+                                                             FontSize="15pt"
+                                                             FontWeight="Black"
+                                                             TextWrapping="NoWrap"
+                                                             Fill="White"
+                                                             Stroke="Black"
+                                                             StrokeThickness="1"
+                                                             HorizontalAlignment="Right"
+                                                             Grid.Column="0"/>
+                                    <local:OutlinedTextBlock x:Name="MenuItemNote"
+                                                             Text="{Binding Note}"
+                                                             FontFamily="Verdana"
+                                                             FontSize="9pt"
+                                                             FontWeight="Bold"
+                                                             TextWrapping="NoWrap"
+                                                             Fill="White"
+                                                             Stroke="Gray"
+                                                             StrokeThickness="1"
+                                                             HorizontalAlignment="Left"
+                                                             Grid.Column="1"
+                                                             Margin="5,6,0,0"
+                                                             Visibility="{Binding ShowNote}"/>
+
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="MenuItemText" Property="Fill" Value="Orange"/>
+                                        <Setter TargetName="MenuItemNote" Property="Fill" Value="Yellow"/>
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Viewbox>
+                <Viewbox Grid.Row="0"
+                         Grid.Column="1"
+                         Grid.RowSpan="2"
+                         Stretch="Fill"
+                         Margin="10">
+                    <bot:TransitionPresenter x:Name="InfoBox">
+                        <bot:TransitionPresenter.Transition>
+                            <bot:FadeTransition Duration="00:00:00.5"/>
+                        </bot:TransitionPresenter.Transition>
+                        <bot:TransitionPresenter.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource TranslucentGray}"/>
+                                <Setter Property="Background" Value="{DynamicResource TranslucentGray2}"/>
+                                <Setter Property="Width" Value="352"/>
+                                <Setter Property="Height" Value="600"/>
+                            </Style>
+                            <Style TargetType="FrameworkElement">
+                                <Setter Property="Width" Value="352"/>
+                                <Setter Property="Height" Value="600"/>
+                            </Style>
+                        </bot:TransitionPresenter.Resources>
+                        <bot:TransitionPresenter.Content>
+                            <FrameworkElement/>
+                        </bot:TransitionPresenter.Content>
+                    </bot:TransitionPresenter>
+                </Viewbox>
+            </Grid>
+        </Border>
+        <!--<bot:TransitionPresenter x:Name="ParalaxLogo" Margin="100,10,100,100">
             <bot:TransitionPresenter.Transition>
                 <bot:FadeTransition Duration="00:00:00.5"/>
             </bot:TransitionPresenter.Transition>
@@ -74,7 +215,7 @@
                     <RotateTransform Angle="0"/>
                 </TransformGroup>
             </bot:TransitionPresenter.RenderTransform>
-        </bot:TransitionPresenter>
+        </bot:TransitionPresenter>-->
         <Border Margin="0" BorderThickness="1" BorderBrush="{DynamicResource TranslucentGray}">
             <Border Margin="{Binding Mode=OneWay, Source={StaticResource CornerMargin}}" BorderThickness="1">
                 <Grid>

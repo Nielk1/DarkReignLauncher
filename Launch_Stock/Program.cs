@@ -24,7 +24,6 @@ namespace Launch_Stock
 
             Process proc = Process.Start(info);
             proc.WaitForExit();
-
         }
     }
 }
