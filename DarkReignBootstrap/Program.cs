@@ -53,7 +53,7 @@ namespace DarkReignBootstrap
                     DarkReignProcess.WaitForInputIdle(150);
 
                     // Write our ASM changes, hopefully after the decompression
-                    Script.DoAsmInjections(DarkReignProcess);
+                    //Script.DoAsmInjections(DarkReignProcess);
 
                     bool BrokeOutOfSubloop = false;
                     //for (; ; )
@@ -81,8 +81,9 @@ namespace DarkReignBootstrap
                                     Script.DoAsmInjections(DarkReignProcess);
 
                                     // Send the MessageBoxA the Yes button ID code, this will work reguardless of localization
+#if !DEBUG
                                     User32.SendMessage(WindowHandle, User32.WM_COMMAND, (User32.BN_CLICKED << 16) | User32.IDYES, IntPtr.Zero);
-
+#endif
                                     // Make sure our break out of this loop applies to the parent loop too
                                     BrokeOutOfSubloop = true;
                                     break;

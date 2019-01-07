@@ -31,8 +31,8 @@ namespace DarkHook
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr CreateFileW(String filename, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi)]
-        public static extern uint GetPrivateProfileStringA(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, uint nSize, string lpFileName);
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern uint GetPrivateProfileStringA(string lpAppName, string lpKeyName, string lpDefault, IntPtr lpReturnedString, uint nSize, string lpFileName);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         public static extern IntPtr FindFirstFileA(string lpFileName, out WIN32_FIND_DATAA lpFindFileData);
@@ -94,5 +94,13 @@ namespace DarkHook
             public UInt32 pausedsec;
             public UInt32 lastendsec;
         }
+    }
+
+    public class Msvcrt
+    {
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern Int32 _access(String filename, int mode);
+
+        public const int ENOENT = 0x02; // No such file or directory	2
     }
 }

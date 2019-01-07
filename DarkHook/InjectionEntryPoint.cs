@@ -90,6 +90,7 @@ namespace DarkHook
             var findFirstFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindFirstFileA"), new FindFirstFile_Delegate(FindFirstFile_Hook), this);
             var findNextFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindNextFileA"), new FindNextFile_Delegate(FindNextFile_Hook), this);
             var findCloseHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindClose"), new FindClose_Delegate(FindClose_Hook), this);
+            var _accessHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("msvcrt.dll", "_access"), new _access_Delegate(_access_Hook), this); 
             var AIL_redbook_volumeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_volume@4"), new AIL_redbook_volume_Delegate(AIL_redbook_volume_Hook), this);
             var AIL_redbook_set_volumeeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_set_volume@8"), new AIL_redbook_set_volume_Delegate(AIL_redbook_set_volume_Hook), this);
 
@@ -102,6 +103,7 @@ namespace DarkHook
             findFirstFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             findNextFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             findCloseHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+            _accessHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             AIL_redbook_volumeHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             AIL_redbook_set_volumeeHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
 
@@ -148,6 +150,7 @@ namespace DarkHook
             findFirstFileHook.Dispose();
             findNextFileHook.Dispose();
             findCloseHook.Dispose();
+            _accessHook.Dispose();
             AIL_redbook_volumeHook.Dispose();
             AIL_redbook_set_volumeeHook.Dispose();
 
@@ -162,10 +165,12 @@ namespace DarkHook
         enum PathType
         {
             NotFilePass, // Starts with \\
+            HardPass,
             CachedPass,
             CachedRedirect,
             Pass,
             Redirect,
+            SoftPass,
         }
 
         /// <summary>
@@ -207,7 +212,7 @@ namespace DarkHook
                 // even though it's rooted, it's rooted somewhere other than our game folder
                 if (!filename.StartsWith(BasePath))
                 {
-                    type = PathType.Pass;
+                    type = PathType.HardPass;
                     return filename;
                 }
 
@@ -274,7 +279,7 @@ namespace DarkHook
             }
 
             // nothing else opened it, so pass through
-            type = PathType.Pass;
+            type = PathType.SoftPass;
             return originalFilename;
         }
 
@@ -388,12 +393,35 @@ namespace DarkHook
         [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
         delegate bool FindClose_Delegate(IntPtr hFindFile);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
-        delegate uint GetPrivateProfileString_Delegate(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, uint nSize, string lpFileName);
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi, SetLastError = true)]
+        delegate uint GetPrivateProfileString_Delegate(string lpAppName, string lpKeyName, string lpDefault, IntPtr lpReturnedString, uint nSize, string lpFileName);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi, SetLastError = true)]
+        delegate int _access_Delegate(String filename, int mode);
 
 
-
-
+        int _access_Hook(String filename, int mode)
+        {
+            try
+            {
+                PathType dirType;
+                string redirectedFilename = GetFirstValidPath(filename, out dirType);
+                if (dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
+                    TrySendMessage($"_access\t{dirType}\t\t\t\t\"{filename}\"\t\"{redirectedFilename}\"");
+                return Msvcrt._access(redirectedFilename, mode);
+            }
+            catch (Exception ex)
+            {
+                Exception ex1 = ex;
+                while (ex1 != null)
+                {
+                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                    ex1 = ex1.InnerException;
+                }
+            }
+            Kernel32.SetLastError(Msvcrt.ENOENT);
+            return -1;
+        }
 
 
         /// <summary>
@@ -413,7 +441,8 @@ namespace DarkHook
             {
                 PathType dirType;
                 string redirectedFilename = GetFirstValidPath(filename, out dirType);
-                TrySendMessage($"CreateFile\t{dirType}\t\t\t\t\"{filename}\"\t\"{redirectedFilename}\"");
+                if(dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
+                    TrySendMessage($"CreateFile\t{dirType}\t\t\t\t\"{filename}\"\t\"{redirectedFilename}\"");
                 return Kernel32.CreateFileW(redirectedFilename, desiredAccess, shareMode, securityAttributes, creationDisposition, flagsAndAttributes, templateFile);
             }
             catch (Exception ex)
@@ -429,22 +458,23 @@ namespace DarkHook
             return Kernel32.INVALID_HANDLE_VALUE;
         }
 
-        uint GetPrivateProfileString_Hook(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, uint nSize, string filename)
+        uint GetPrivateProfileString_Hook(string lpAppName, string lpKeyName, string lpDefault, IntPtr lpReturnedString, uint nSize, string filename)
         {
             try
             {
-                // wierd path like a HID device
-                if (filename.StartsWith(@"\\"))
+                // wierd path like a HID device or just no file at all
+                if (filename == null || filename.StartsWith(@"\\"))
                 {
-                    /*//*/TrySendMessage($"GetPrivateProfileString\tPASS\t\t\t\t\"{filename}\"");
+                    TrySendMessage($"GetPrivateProfileString\t{PathType.NotFilePass}\t\t\t\t\"{filename}\"");
                     return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                 }
 
                 // it's not a CFG
                 if (!filename.EndsWith(@".cfg"))
                 {
-                    /*//*/TrySendMessage($"GetPrivateProfileString\tPASS\t\t\t\t\"{filename}\"");
-                    return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
+                    TrySendMessage($"GetPrivateProfileString\t{PathType.Pass}\t\t\t\t\"{filename}\"");
+                    uint retVal = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
+                    return retVal;
                 }
 
                 bool HadBaseInfront = false;
@@ -456,7 +486,7 @@ namespace DarkHook
                     // even though it's rooted, it's rooted somewhere other than our game folder
                     if (!filename.StartsWith(BasePath))
                     {
-                        /*//*/TrySendMessage($"GetPrivateProfileString\tPASS\t\t\t\t\"{filename}\"");
+                        TrySendMessage($"GetPrivateProfileString\t{PathType.Pass}\t\t\t\t\"{filename}\"");
                         return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                     }
 
@@ -477,75 +507,120 @@ namespace DarkHook
                 // it's a save data request
                 if (filename.StartsWith(@"save\"))
                 {
-                    throw new ArgumentException("GetPrivateProfileString is trying to use a file in save\"");
+                    throw new ArgumentException("GetPrivateProfileString is trying to use a cfg file in save\"");
                 }
 
                 if (filename.StartsWith(@"dark\"))
                 {
                     if (ModPaths.Count > 0)
                     {
+                        List<string> SearchPaths = new List<string>();
                         foreach (string modpath in ModPaths)
                         {
                             string CandidatePath = (HadBaseInfront ? BasePath : string.Empty)
                                                  + (HadOddPeriod ? @".\" : string.Empty)
                                                  + $@"mods\{modpath}\"
                                                  + filename.Substring(5);
+                            SearchPaths.Add(CandidatePath);
+                        }
+                        SearchPaths.Add(originalFilename);
+
+                        List<string> MultiStringReturn = new List<string>();
+                        string SingleStringReturn = lpDefault;
+
+                        ASCIIEncoding enc = new ASCIIEncoding();
+
+                        Stack<string> SearchedPaths = new Stack<string>();
+                        foreach (string CandidatePath in SearchPaths)
+                        {
                             if (File.Exists(CandidatePath))
                             {
                                 TrySendMessage($"GetPrivateProfileString\tREDIRECT\t\t\t\t\"{originalFilename}\"\t\"{CandidatePath}\"");
 
-                                StringBuilder tmpBuilder = new StringBuilder(lpReturnedString.Capacity);
-                                uint retVal = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, tmpBuilder, nSize, CandidatePath);
-                                string lastvalue = tmpBuilder.ToString();
-                                bool foundCurrentPath = false;
-                                foreach (string modpath2 in ModPaths.Reverse<string>())
+                                byte[] buff = new byte[nSize];
+                                GCHandle pinnedArray = GCHandle.Alloc(buff, GCHandleType.Pinned);
+                                IntPtr buffpointer = pinnedArray.AddrOfPinnedObject();
+                                uint buffSize = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, SingleStringReturn, buffpointer, nSize, CandidatePath);
+                                pinnedArray.Free();
+                                if (lpAppName == null || lpKeyName == null)
                                 {
-                                    if(foundCurrentPath)
-                                    {
-                                        foundCurrentPath = modpath2 == modpath;
-                                        continue;
-                                    }
-                                    string CandidatePath2 = (HadBaseInfront ? BasePath : string.Empty)
-                                                          + (HadOddPeriod ? @".\" : string.Empty)
-                                                          + $@"mods\{modpath2}\"
-                                                          + filename.Substring(5)
-                                                          + "add"; // checking for .cfgadd files
-                                    if (File.Exists(CandidatePath2))
-                                    {
-                                        TrySendMessage($"GetPrivateProfileString\tALSO\t\t\t\t\"{originalFilename}\"\t\"{CandidatePath2}\"");
-                                        tmpBuilder.Clear();
-                                        retVal = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lastvalue, tmpBuilder, nSize, CandidatePath2);
-                                        lastvalue = tmpBuilder.ToString();
-                                    }
+                                    //string TmpString = new string(buff, 0, (int)buffSize);
+                                    string TmpString = enc.GetString(buff, 0, (int)buffSize);
+                                    MultiStringReturn.AddRange(TmpString.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries));
                                 }
-                                lpReturnedString.Append(lastvalue);
-                                return retVal;
+                                else
+                                {
+                                    //SingleStringReturn = new string(buff, 0, (int)buffSize);
+                                    string TmpSingleStringReturn = enc.GetString(buff, 0, (int)buffSize);
+                                    if(TmpSingleStringReturn.Contains(@"$PARENT"))
+                                    {
+                                        TmpSingleStringReturn = TmpSingleStringReturn.Replace(@"$PARENT", SingleStringReturn);
+                                    }
+                                    SingleStringReturn = TmpSingleStringReturn;
+                                }
+                                break;
+                            }
+                            SearchedPaths.Push(CandidatePath);
+                        }
+
+                        while(SearchedPaths.Count > 0)
+                        {
+                            string CandidatePath = SearchedPaths.Pop() + "add";
+
+                            if (File.Exists(CandidatePath))
+                            {
+                                TrySendMessage($"GetPrivateProfileString\tADD\t\t\t\t\"{originalFilename}\"\t\"{CandidatePath}\"");
+
+                                byte[] buff = new byte[nSize];
+                                GCHandle pinnedArray = GCHandle.Alloc(buff, GCHandleType.Pinned);
+                                IntPtr buffpointer = pinnedArray.AddrOfPinnedObject();
+                                uint buffSize = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, SingleStringReturn, buffpointer, nSize, CandidatePath);
+                                pinnedArray.Free();
+                                if (lpAppName == null || lpKeyName == null)
+                                {
+                                    //string TmpString = new string(buff, 0, (int)buffSize);
+                                    string TmpString = enc.GetString(buff, 0, (int)buffSize);
+                                    MultiStringReturn.AddRange(TmpString.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries));
+                                }
+                                else
+                                {
+                                    //SingleStringReturn = new string(buff, 0, (int)buffSize);
+                                    SingleStringReturn = enc.GetString(buff, 0, (int)buffSize);
+                                }
+                                break;
                             }
                         }
 
+                        if (lpAppName == null || lpKeyName == null)
                         {
-                            TrySendMessage($"GetPrivateProfileString\tPASS\t\t\t\t\"{originalFilename}\"");
-
-                            StringBuilder tmpBuilder = new StringBuilder(lpReturnedString.Capacity);
-                            uint retVal = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, tmpBuilder, nSize, originalFilename);
-                            string lastvalue = tmpBuilder.ToString();
-                            foreach (string modpath2 in ModPaths.Reverse<string>())
+                            string retString = string.Join("\0", MultiStringReturn.Distinct().OrderBy(dr => dr)) + '\0';
+                            uint length = Math.Min((uint)retString.Length, nSize - 2);
+                            //System.Buffer.BlockCopy(retString.ToCharArray(), 0, lpReturnedString, 0, (int)length);
+                            for (int i = 0; i < length; i++)
                             {
-                                string CandidatePath2 = (HadBaseInfront ? BasePath : string.Empty)
-                                                      + (HadOddPeriod ? @".\" : string.Empty)
-                                                      + $@"mods\{modpath2}\"
-                                                      + filename.Substring(5)
-                                                      + "add"; // checking for .cfgadd files
-                                if (File.Exists(CandidatePath2))
-                                {
-                                    TrySendMessage($"GetPrivateProfileString\tALSO\t\t\t\t\"{originalFilename}\"\t\"{CandidatePath2}\"");
-                                    tmpBuilder.Clear();
-                                    retVal = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lastvalue, tmpBuilder, nSize, CandidatePath2);
-                                    lastvalue = tmpBuilder.ToString();
-                                }
+                                Marshal.WriteByte(lpReturnedString, i, (byte)retString[i]);
                             }
-                            lpReturnedString.Append(lastvalue);
-                            return retVal;
+                            //lpReturnedString[length] = '\0'; // if there's a char here just overwrite it
+                            Marshal.WriteByte(lpReturnedString, (int)length, 0x00); // make sure there's a nul after our last nul
+                            //lpReturnedString[nSize - 2] = '\0'; // if there's a char here just overwrite it
+                            Marshal.WriteByte(lpReturnedString, (int)(nSize - 2), 0x00); // also smash a double null onto the end, which would deal with truncation
+                            //lpReturnedString[nSize - 1] = '\0'; // if there's a char here just overwrite it
+                            Marshal.WriteByte(lpReturnedString, (int)(nSize - 1), 0x00); // also smash a double null onto the end, which would deal with truncation
+                            TrySendMessage($"GetPrivateProfileString\tADD\t\t\t\t\"{originalFilename}\"\t\t{length}\t{(lpAppName != null ? "\"" + lpAppName + "\"" : "NULL")}\t{(lpKeyName != null ? "\"" + lpKeyName + "\"" : "NULL")}\t{(lpDefault != null ? "\"" + lpDefault + "\"" : "NULL")}\t\"{string.Join(",", MultiStringReturn.Distinct().OrderBy(dr => dr))}\"");
+                            return length;
+                        }
+                        else
+                        {
+                            uint length = Math.Min((uint)SingleStringReturn.Length, nSize - 1);
+                            //System.Buffer.BlockCopy(SingleStringReturn.ToCharArray(), 0, lpReturnedString, 0, (int)length);
+                            for (int i = 0; i < length; i++)
+                            {
+                                Marshal.WriteByte(lpReturnedString, i, (byte)SingleStringReturn[i]);
+                            }
+                            //lpReturnedString[length] = '\0'; // if there's a char here just overwrite it
+                            Marshal.WriteByte(lpReturnedString, (int)length, 0x00);
+                            TrySendMessage($"GetPrivateProfileString\tADD\t\t\t\t\"{originalFilename}\"\t\t{length}\t{(lpAppName != null ? "\"" + lpAppName + "\"" : "NULL")}\t{(lpKeyName != null ? "\"" + lpKeyName + "\"" : "NULL")}\t{(lpDefault != null ? "\"" + lpDefault + "\"" : "NULL")}\t\"{SingleStringReturn}\"");
+                            return length;
                         }
                     }
                     else
@@ -572,12 +647,18 @@ namespace DarkHook
                 }
             }
             Kernel32.SetLastError(Kernel32.ERROR_FILE_NOT_FOUND);
-            lpReturnedString.Append(lpDefault);
-            return (uint)lpDefault.Length;
+            {
+                uint length = Math.Max((uint)lpDefault.Length, nSize - 1);
+                //System.Buffer.BlockCopy(lpDefault.ToCharArray(), 0, lpReturnedString, 0, (int)length);
+                for (int i = 0; i < length; i++)
+                {
+                    Marshal.WriteByte(lpReturnedString, i, (byte)lpDefault[i]);
+                }
+                //lpReturnedString[length] = '\0'; // if there's a char here just overwrite it
+                Marshal.WriteByte(lpReturnedString, (int)length, 0x00);
+                return length;
+            }
         }
-
-
-
 
 
 
