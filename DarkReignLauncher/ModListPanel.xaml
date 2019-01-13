@@ -34,7 +34,7 @@
                                                  TextWrapping="NoWrap"
                                                  Fill="White"
                                                  Stroke="Black"
-                                                 StrokeThickness="1"
+                                                 StrokeThickness="0.9"
                                                  HorizontalAlignment="Left"
                                                  Grid.Column="1"/>
                         <local:OutlinedTextBlock x:Name="MenuItemNote"
@@ -45,7 +45,7 @@
                                                  TextWrapping="NoWrap"
                                                  Fill="White"
                                                  Stroke="Gray"
-                                                 StrokeThickness="1"
+                                                 StrokeThickness="0.5"
                                                  HorizontalAlignment="Right"
                                                  Grid.Column="0"
                                                  Margin="0,6,5,0"

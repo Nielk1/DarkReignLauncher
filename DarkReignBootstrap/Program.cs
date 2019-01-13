@@ -24,10 +24,12 @@ namespace DarkReignBootstrap
                     ModFile = args[0];
                     CleanArguments = CleanArguments.Substring(ModFile.Length).TrimStart();
                 }
-                string ModFilePath = Path.Combine("ldata", ModFile + ".modification");
+                string ModFilePath = Path.Combine("ldata", ModFile + ".launchprofile");
                 if (!string.IsNullOrWhiteSpace(ModFile) && File.Exists(ModFilePath))
                 {
                     ModInstructions Script = new ModInstructions(ModFilePath);
+
+                    Console.WriteLine($"DKREIGN.EXE {CleanArguments}");
 
                     ProcessStartInfo info = new ProcessStartInfo()
                     {

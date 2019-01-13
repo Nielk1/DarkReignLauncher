@@ -9,10 +9,10 @@ using System.Windows;
 // associated with an assembly.
 [assembly: AssemblyTitle("DarkReignLauncher")]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DarkReignLauncher")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
+[assembly: AssemblyConfiguration("Dark Reign Launcher with Game and Mod selection, updating, and information")]
+[assembly: AssemblyCompany("John \"Nielk1\" Klein")]
+[assembly: AssemblyProduct("Dark Reign Launcher")]
+[assembly: AssemblyCopyright("Copyright ©John \"Nielk1\" Klein 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -51,5 +51,5 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]

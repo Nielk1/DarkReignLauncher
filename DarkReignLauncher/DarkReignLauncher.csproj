@@ -86,6 +86,9 @@
     <Compile Include="ModListPanel.xaml.cs">
       <DependentUpon>ModListPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OptionsPanel.xaml.cs">
+      <DependentUpon>OptionsPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OutlinedTextBlock.cs" />
     <Compile Include="WindowAspectRatio.cs" />
     <Compile Include="App.xaml.cs">
@@ -98,6 +101,9 @@
     </Page>
     <Page Include="ModListPanel.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OptionsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,6 +37,8 @@ namespace DarkHook
         FileStream volSave;
         byte VolSet = 127;
         byte VolLast = 127;
+
+        object DarkHookLog = new object();
 
         /// <summary>
         /// EasyHook requires a constructor that matches <paramref name="context"/> and any additional parameters as provided
@@ -162,6 +166,7 @@ namespace DarkHook
             EasyHook.LocalHook.Release();
         }
 
+        [JsonConverter(typeof(StringEnumConverter))]
         enum PathType
         {
             NotFilePass, // Starts with \\
@@ -171,6 +176,8 @@ namespace DarkHook
             Pass,
             Redirect,
             SoftPass,
+            Override, // we overrode the normal logic to do crazy stuff
+            Composite, // this is a composite notice
         }
 
         /// <summary>
@@ -402,21 +409,32 @@ namespace DarkHook
 
         int _access_Hook(String filename, int mode)
         {
+            Guid callID = Guid.NewGuid();
+
             try
             {
                 PathType dirType;
                 string redirectedFilename = GetFirstValidPath(filename, out dirType);
-                if (dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
-                    TrySendMessage($"_access\t{dirType}\t\t\t\t\"{filename}\"\t\"{redirectedFilename}\"");
+                //if (dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
+                    TrySendMessage(callID, new
+                    {
+                        function = "_access",
+                        module = "msvcrt",
+                        paramaters = new { filename = filename, mode = mode },
+                        notes = new { filename = redirectedFilename, dirType = dirType }
+                    });
                 return Msvcrt._access(redirectedFilename, mode);
             }
             catch (Exception ex)
             {
-                Exception ex1 = ex;
-                while (ex1 != null)
+                lock (DarkHookLog)
                 {
-                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
-                    ex1 = ex1.InnerException;
+                    Exception ex1 = ex;
+                    while (ex1 != null)
+                    {
+                        File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                        ex1 = ex1.InnerException;
+                    }
                 }
             }
             Kernel32.SetLastError(Msvcrt.ENOENT);
@@ -437,21 +455,33 @@ namespace DarkHook
         /// <returns></returns>
         IntPtr CreateFile_Hook(String filename, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile)
         {
+            Guid callID = Guid.NewGuid();
+
             try
             {
                 PathType dirType;
                 string redirectedFilename = GetFirstValidPath(filename, out dirType);
-                if(dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
-                    TrySendMessage($"CreateFile\t{dirType}\t\t\t\t\"{filename}\"\t\"{redirectedFilename}\"");
+                //if(dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
+                    TrySendMessage(callID, new
+                    {
+                        function = "CreateFileW",
+                        module = "kernel32",
+                        paramaters = new { filename = filename, desiredAccess = desiredAccess, shareMode = shareMode, securityAttributes = securityAttributes, creationDisposition = creationDisposition, flagsAndAttributes = flagsAndAttributes, templateFile = templateFile },
+                        notes = new { dirType = dirType },
+                        @out = new { filename = redirectedFilename },
+                    });
                 return Kernel32.CreateFileW(redirectedFilename, desiredAccess, shareMode, securityAttributes, creationDisposition, flagsAndAttributes, templateFile);
             }
             catch (Exception ex)
             {
-                Exception ex1 = ex;
-                while (ex1 != null)
+                lock (DarkHookLog)
                 {
-                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
-                    ex1 = ex1.InnerException;
+                    Exception ex1 = ex;
+                    while (ex1 != null)
+                    {
+                        File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                        ex1 = ex1.InnerException;
+                    }
                 }
             }
             Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
@@ -460,19 +490,33 @@ namespace DarkHook
 
         uint GetPrivateProfileString_Hook(string lpAppName, string lpKeyName, string lpDefault, IntPtr lpReturnedString, uint nSize, string filename)
         {
+            Guid callID = Guid.NewGuid();
+
             try
             {
                 // wierd path like a HID device or just no file at all
                 if (filename == null || filename.StartsWith(@"\\"))
                 {
-                    TrySendMessage($"GetPrivateProfileString\t{PathType.NotFilePass}\t\t\t\t\"{filename}\"");
+                    TrySendMessage(callID, new
+                    {
+                        function = "GetPrivateProfileStringA",
+                        module = "kernel32",
+                        paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = filename },
+                        notes = new { dirType = PathType.NotFilePass },
+                    });
                     return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                 }
 
                 // it's not a CFG
                 if (!filename.EndsWith(@".cfg"))
                 {
-                    TrySendMessage($"GetPrivateProfileString\t{PathType.Pass}\t\t\t\t\"{filename}\"");
+                    TrySendMessage(callID, new
+                    {
+                        function = "GetPrivateProfileStringA",
+                        module = "kernel32",
+                        paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = filename },
+                        notes = new { dirType = PathType.HardPass },
+                    });
                     uint retVal = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                     return retVal;
                 }
@@ -486,7 +530,13 @@ namespace DarkHook
                     // even though it's rooted, it's rooted somewhere other than our game folder
                     if (!filename.StartsWith(BasePath))
                     {
-                        TrySendMessage($"GetPrivateProfileString\t{PathType.Pass}\t\t\t\t\"{filename}\"");
+                        TrySendMessage(callID, new
+                        {
+                            function = "GetPrivateProfileStringA",
+                            module = "kernel32",
+                            paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = filename },
+                            notes = new { dirType = PathType.Pass },
+                        });
                         return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                     }
 
@@ -535,7 +585,13 @@ namespace DarkHook
                         {
                             if (File.Exists(CandidatePath))
                             {
-                                TrySendMessage($"GetPrivateProfileString\tREDIRECT\t\t\t\t\"{originalFilename}\"\t\"{CandidatePath}\"");
+                                TrySendMessage(callID, new
+                                {
+                                    function = "GetPrivateProfileStringA",
+                                    module = "kernel32",
+                                    paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = originalFilename },
+                                    notes = new { filename = CandidatePath, dirType = PathType.Redirect },
+                                });
 
                                 byte[] buff = new byte[nSize];
                                 GCHandle pinnedArray = GCHandle.Alloc(buff, GCHandleType.Pinned);
@@ -569,7 +625,13 @@ namespace DarkHook
 
                             if (File.Exists(CandidatePath))
                             {
-                                TrySendMessage($"GetPrivateProfileString\tADD\t\t\t\t\"{originalFilename}\"\t\"{CandidatePath}\"");
+                                TrySendMessage(callID, new
+                                {
+                                    function = "GetPrivateProfileStringA",
+                                    module = "kernel32",
+                                    paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = originalFilename },
+                                    notes = new { filename = CandidatePath, dirType = PathType.Composite },
+                                });
 
                                 byte[] buff = new byte[nSize];
                                 GCHandle pinnedArray = GCHandle.Alloc(buff, GCHandleType.Pinned);
@@ -606,7 +668,15 @@ namespace DarkHook
                             Marshal.WriteByte(lpReturnedString, (int)(nSize - 2), 0x00); // also smash a double null onto the end, which would deal with truncation
                             //lpReturnedString[nSize - 1] = '\0'; // if there's a char here just overwrite it
                             Marshal.WriteByte(lpReturnedString, (int)(nSize - 1), 0x00); // also smash a double null onto the end, which would deal with truncation
-                            TrySendMessage($"GetPrivateProfileString\tADD\t\t\t\t\"{originalFilename}\"\t\t{length}\t{(lpAppName != null ? "\"" + lpAppName + "\"" : "NULL")}\t{(lpKeyName != null ? "\"" + lpKeyName + "\"" : "NULL")}\t{(lpDefault != null ? "\"" + lpDefault + "\"" : "NULL")}\t\"{string.Join(",", MultiStringReturn.Distinct().OrderBy(dr => dr))}\"");
+                            TrySendMessage(callID, new
+                            {
+                                function = "GetPrivateProfileStringA",
+                                module = "kernel32",
+                                paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = originalFilename },
+                                notes = new { dirType = PathType.Composite },
+                                @return = length,
+                                @out = new { lpReturnedString = retString },
+                            });
                             return length;
                         }
                         else
@@ -619,31 +689,54 @@ namespace DarkHook
                             }
                             //lpReturnedString[length] = '\0'; // if there's a char here just overwrite it
                             Marshal.WriteByte(lpReturnedString, (int)length, 0x00);
-                            TrySendMessage($"GetPrivateProfileString\tADD\t\t\t\t\"{originalFilename}\"\t\t{length}\t{(lpAppName != null ? "\"" + lpAppName + "\"" : "NULL")}\t{(lpKeyName != null ? "\"" + lpKeyName + "\"" : "NULL")}\t{(lpDefault != null ? "\"" + lpDefault + "\"" : "NULL")}\t\"{SingleStringReturn}\"");
+                            TrySendMessage(callID, new
+                            {
+                                function = "GetPrivateProfileStringA",
+                                module = "kernel32",
+                                paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = originalFilename },
+                                notes = new { dirType = PathType.Composite },
+                                @return = length,
+                                @out = new { lpReturnedString  = SingleStringReturn },
+                            });
                             return length;
                         }
                     }
                     else
                     {
                         // we have no mods, use a normal load
-                        PathRedirectCache[originalFilename] = originalFilename;
-                        TrySendMessage($"GetPrivateProfileString\tPASS\t\t\t\t\"{originalFilename}\"");
+                        //PathRedirectCache[originalFilename] = originalFilename;
+                        TrySendMessage(callID, new
+                        {
+                            function = "GetPrivateProfileStringA",
+                            module = "kernel32",
+                            paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = originalFilename },
+                            notes = new { dirType = PathType.Pass },
+                        });
                         return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, originalFilename);
                     }
                 }
 
                 // nothing else opened it, so pass through
-                PathRedirectCache[originalFilename] = originalFilename;
-                /*//*/TrySendMessage($"GetPrivateProfileString\tPASS\t\t\t\t\"{originalFilename}\"");
+                //PathRedirectCache[originalFilename] = originalFilename;
+                TrySendMessage(callID, new
+                {
+                    function = "GetPrivateProfileStringA",
+                    module = "kernel32",
+                    paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = originalFilename },
+                    notes = new { dirType = PathType.Pass },
+                });
                 return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, originalFilename);
             }
             catch (Exception ex)
             {
-                Exception ex1 = ex;
-                while (ex1 != null)
+                lock (DarkHookLog)
                 {
-                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
-                    ex1 = ex1.InnerException;
+                    Exception ex1 = ex;
+                    while (ex1 != null)
+                    {
+                        File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                        ex1 = ex1.InnerException;
+                    }
                 }
             }
             Kernel32.SetLastError(Kernel32.ERROR_FILE_NOT_FOUND);
@@ -686,14 +779,14 @@ namespace DarkHook
                     continue;
                 }
                 {
-                    string intendedPath = tmp.cFileName;
+                    string intendedPath = tmp.cFileName.ToLowerInvariant();
                     if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
                 }
                 for(; ;)
                 {
                     if (!Kernel32.FindNextFileA(Find, out tmp))
                         break;
-                    string intendedPath = tmp.cFileName;
+                    string intendedPath = tmp.cFileName.ToLowerInvariant();
                     if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
                 }
                 Kernel32.FindClose(Find);
@@ -704,14 +797,14 @@ namespace DarkHook
                 if (Find != Kernel32.INVALID_HANDLE_VALUE)
                 {
                     {
-                        string intendedPath = tmp.cFileName;
+                        string intendedPath = tmp.cFileName.ToLowerInvariant();
                         if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
                     }
                     for (; ; )
                     {
                         if (!Kernel32.FindNextFileA(Find, out tmp))
                             break;
-                        string intendedPath = tmp.cFileName;
+                        string intendedPath = tmp.cFileName.ToLowerInvariant();
                         if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
                     }
                     Kernel32.FindClose(Find);
@@ -753,12 +846,23 @@ namespace DarkHook
 
         IntPtr FindFirstFile_Hook(string filename, out Kernel32.WIN32_FIND_DATAA lpFindFileData)
         {
-            try {
+            Guid callID = Guid.NewGuid();
+
+            try
+            {
                 // wierd path like a HID device
                 if (filename.StartsWith(@"\\"))
                 {
                     IntPtr retVal = Kernel32.FindFirstFileA(filename, out lpFindFileData);
-                    /*//*/TrySendMessage($"FindFirstFile\tPASS\t{retVal}\t\t\t\"{filename}\"");
+                    TrySendMessage(callID, new
+                    {
+                        function = "FindFirstFileA",
+                        module = "kernel32",
+                        paramaters = new { filename = filename },
+                        @return = retVal,
+                        notes = new { dirType = PathType.Pass },
+                        @out = new { lpFindFileData = lpFindFileData },
+                    });
                     return retVal;
                 }
 
@@ -772,7 +876,15 @@ namespace DarkHook
                     if (!filename.StartsWith(BasePath))
                     {
                         IntPtr retVal = Kernel32.FindFirstFileA(filename, out lpFindFileData);
-                        /*//*/TrySendMessage($"FindFirstFile\tPASS\t{retVal}\t\t\t\"{filename}\"");
+                        TrySendMessage(callID, new
+                        {
+                            function = "FindFirstFileA",
+                            module = "kernel32",
+                            paramaters = new { filename = filename },
+                            @return = retVal,
+                            notes = new { dirType = PathType.Pass },
+                            @out = new { lpFindFileData = lpFindFileData },
+                        });
                         return retVal;
                     }
 
@@ -800,12 +912,28 @@ namespace DarkHook
                         if (!Directory.Exists(SaveDir))
                             Directory.CreateDirectory(SaveDir);
                         IntPtr retVal = Kernel32.FindFirstFileA(filename, out lpFindFileData);
-                        TrySendMessage($"FindFirstFile\tREDIRECT\t{retVal}\t\t\t\"{originalFilename}\"\t\"{filename}\"");
+                        TrySendMessage(callID, new
+                        {
+                            function = "FindFirstFileA",
+                            module = "kernel32",
+                            paramaters = new { filename = originalFilename },
+                            @return = retVal,
+                            notes = new { filename = filename, dirType = PathType.Redirect },
+                            @out = new { lpFindFileData = lpFindFileData },
+                        });
                         return retVal;
                     }
                     {
                         IntPtr retVal = Kernel32.FindFirstFileA(originalFilename, out lpFindFileData);
-                        TrySendMessage($"FindFirstFile\tPASS\t{retVal}\t\t\t\"{originalFilename}\"");
+                        TrySendMessage(callID, new
+                        {
+                            function = "FindFirstFileA",
+                            module = "kernel32",
+                            paramaters = new { filename = originalFilename },
+                            @return = retVal,
+                            notes = new { dirType = PathType.Pass },
+                            @out = new { lpFindFileData = lpFindFileData },
+                        });
                         return retVal;
                     }
                 }
@@ -830,11 +958,27 @@ namespace DarkHook
                             {
                                 FindFileOverides.Remove((IntPtr)retValX);
                                 retValX.Free();
-                                TrySendMessage($"FindFirstFile\tOVERRIDE\t-1\tsuccess:{success}\terror:{error}\t\"{originalFilename}\"");
+                                TrySendMessage(callID, new
+                                {
+                                    function = "FindFirstFileA",
+                                    module = "kernel32",
+                                    paramaters = new { filename = originalFilename },
+                                    @return = Kernel32.INVALID_HANDLE_VALUE,
+                                    notes = new { success = success, error = error, dirType = PathType.Override },
+                                    @out = new { lpFindFileData = lpFindFileData },
+                                });
                                 return Kernel32.INVALID_HANDLE_VALUE;
                             }
 
-                            TrySendMessage($"FindFirstFile\tOVERRIDE\t{(IntPtr)retValX}\tsuccess:{success}\terror:{error}\t\"{originalFilename}\"\t\"{lpFindFileData.cFileName}\"");
+                            TrySendMessage(callID, new
+                            {
+                                function = "FindFirstFileA",
+                                module = "kernel32",
+                                paramaters = new { filename = originalFilename },
+                                @return = (IntPtr)retValX,
+                                notes = new { success = success, error = error, dirType = PathType.Override },
+                                @out = new { lpFindFileData = lpFindFileData },
+                            });
                             return (IntPtr)retValX;
                         }
                     }
@@ -842,24 +986,43 @@ namespace DarkHook
                         // we have no mods, use a normal scan
                         IntPtr retVal = Kernel32.FindFirstFileA(originalFilename, out lpFindFileData);
                         int error = Marshal.GetLastWin32Error();
-                        /*//*/TrySendMessage($"FindFirstFile\tPASS\t{retVal}\t\terror:{error}\t\"{originalFilename}\"");
+                        TrySendMessage(callID, new
+                        {
+                            function = "FindFirstFileA",
+                            module = "kernel32",
+                            paramaters = new { filename = originalFilename },
+                            @return = retVal,
+                            notes = new { error = error, dirType = PathType.Pass },
+                            @out = new { lpFindFileData = lpFindFileData },
+                        });
                         return retVal;
                     }
                 }
                 {
                     IntPtr retVal = Kernel32.FindFirstFileA(originalFilename, out lpFindFileData);
                     int error = Marshal.GetLastWin32Error();
-                    /*//*/TrySendMessage($"FindFirstFile\tPASS\t{retVal}\t\terror:{error}\t\"{originalFilename}\"");
+                    TrySendMessage(callID, new
+                    {
+                        function = "FindFirstFileA",
+                        module = "kernel32",
+                        paramaters = new { filename = originalFilename },
+                        @return = retVal,
+                        notes = new { error = error, dirType = PathType.Pass },
+                        @out = new { lpFindFileData = lpFindFileData },
+                    });
                     return retVal;
                 }
             }
             catch (Exception ex)
             {
-                Exception ex1 = ex;
-                while (ex1 != null)
+                lock (DarkHookLog)
                 {
-                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
-                    ex1 = ex1.InnerException;
+                    Exception ex1 = ex;
+                    while (ex1 != null)
+                    {
+                        File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                        ex1 = ex1.InnerException;
+                    }
                 }
             }
             lpFindFileData = new Kernel32.WIN32_FIND_DATAA();
@@ -869,7 +1032,10 @@ namespace DarkHook
 
         bool FindNextFile_Hook(IntPtr hFindFile, out Kernel32.WIN32_FIND_DATAA lpFindFileData)
         {
-            try {
+            Guid callID = Guid.NewGuid();
+
+            try
+            {
                 lock (FindFileOverides)
                 {
                     if (FindFileOverides.ContainsKey(hFindFile))
@@ -878,20 +1044,38 @@ namespace DarkHook
                         bool success = false;
                         lpFindFileData = GetNextFile(hFindFile, out error, out success);
                         Kernel32.SetLastError(error);
-                        TrySendMessage($"FindNextFile\tOVERRIDE\t{hFindFile}\tsuccess:{success}\terror:{error}\t\"{lpFindFileData.cFileName}\"");
+                        TrySendMessage(callID, new
+                        {
+                            function = "FindNextFileA",
+                            module = "kernel32",
+                            paramaters = new { hFindFile = hFindFile },
+                            @return = success,
+                            notes = new { success = success, error = error, dirType = PathType.Override },
+                            @out = new { lpFindFileData = lpFindFileData },
+                        });
                         return success;
                     }
                 }
-                /*//*/TrySendMessage($"FindNextFile\tPASS\t{hFindFile}");
+                TrySendMessage(callID, new
+                {
+                    function = "FindNextFileA",
+                    module = "kernel32",
+                    paramaters = new { hFindFile = hFindFile },
+                    @return = VolSet,
+                    notes = new { dirType = PathType.Pass },
+                });
                 return Kernel32.FindNextFileA(hFindFile, out lpFindFileData);
             }
             catch (Exception ex) 
             {
-                Exception ex1 = ex;
-                while (ex1 != null)
+                lock (DarkHookLog)
                 {
-                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
-                    ex1 = ex1.InnerException;
+                    Exception ex1 = ex;
+                    while (ex1 != null)
+                    {
+                        File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                        ex1 = ex1.InnerException;
+                    }
                 }
             }
             lpFindFileData = new Kernel32.WIN32_FIND_DATAA();
@@ -901,27 +1085,46 @@ namespace DarkHook
 
         bool FindClose_Hook(IntPtr hFindFile)
         {
-            try {
+            Guid callID = Guid.NewGuid();
+
+            try
+            {
                 lock (FindFileOverides)
                 {
                     if (FindFileOverides.ContainsKey(hFindFile))
                     {
                         FindFileOverides.Remove(hFindFile);
                         ((GCHandle)hFindFile).Free();
-                        TrySendMessage($"FindClose\tOVERRIDE\t{hFindFile}");
+                        TrySendMessage(callID, new
+                        {
+                            function = "FindClose",
+                            module = "kernel32",
+                            paramaters = new { hFindFile = hFindFile },
+                            @return = VolSet,
+                            notes = new { dirType = PathType.Override },
+                        });
                         return true;
                     }
                 }
-                /*//*/TrySendMessage($"FindClose\tPASS\t{hFindFile}");
+                TrySendMessage(callID, new
+                {
+                    function = "FindClose",
+                    module = "kernel32",
+                    paramaters = new { hFindFile = hFindFile },
+                    notes = new { dirType = PathType.Pass },
+                });
                 return Kernel32.FindClose(hFindFile);
             }
             catch (Exception ex)
             {
-                Exception ex1 = ex;
-                while (ex1 != null)
+                lock (DarkHookLog)
                 {
-                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
-                    ex1 = ex1.InnerException;
+                    Exception ex1 = ex;
+                    while (ex1 != null)
+                    {
+                        File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                        ex1 = ex1.InnerException;
+                    }
                 }
             }
             Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
@@ -944,19 +1147,42 @@ namespace DarkHook
 
         Int32 AIL_redbook_volume_Hook(ref Winmm.REDBOOK hand)
         {
-            /*//*/TrySendMessage($"AIL_redbook_volume\t{hand.DeviceID:X}\t{VolSet}");
+            Guid callID = Guid.NewGuid();
+
+            TrySendMessage(callID, new
+            {
+                function = "_AIL_redbook_volume",
+                module = "mss32",
+                paramaters = new { hand = hand },
+                @return = VolSet,
+            });
             return VolSet;
         }
 
+        /// <summary>
+        /// Hook for redbook volume set in Miles Sound System (mss32.dll)
+        /// </summary>
+        /// <param name="hand">REDBOOK struct</param>
+        /// <param name="volume">0-127, in practice the game sends 0-125</param>
+        /// <returns></returns>
         Int32 AIL_redbook_set_volume_Hook(ref Winmm.REDBOOK hand, Int32 volume)
         {
+            Guid callID = Guid.NewGuid();
+
             try
             {
                 uint newVol = Math.Min((uint)(volume * (65535.0f / 124)), 0xFFFF);
                 Winmm.auxSetVolume((int)hand.DeviceID, newVol);
                 VolLast = VolSet;
                 VolSet = (byte)volume;
-                /*//*/TrySendMessage($"AIL_redbook_set_volume\t{hand.DeviceID:X}\t{VolSet}\t{newVol:X}");
+                TrySendMessage(callID, new
+                {
+                    function = "_AIL_redbook_set_volume",
+                    module = "mss32",
+                    paramaters = new { hand = hand, volume = volume },
+                    @return = volume,
+                    notes = new { sentVolume = $"0x{newVol:X4}", prevVolume = VolLast },
+                });
 
                 volSave.SetLength(0);
                 volSave.WriteByte(VolLast);
@@ -965,11 +1191,14 @@ namespace DarkHook
             }
             catch (Exception ex)
             {
-                Exception ex1 = ex;
-                while (ex1 != null)
+                lock (DarkHookLog)
                 {
-                    File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
-                    ex1 = ex1.InnerException;
+                    Exception ex1 = ex;
+                    while (ex1 != null)
+                    {
+                        File.AppendAllText("darkhook.log", "EXCEPTION " + DateTime.Now + "\r\n" + ex1.ToString() + "\r\n");
+                        ex1 = ex1.InnerException;
+                    }
                 }
             }
             return volume;
@@ -978,10 +1207,14 @@ namespace DarkHook
 
 
 
-        private void TrySendMessage(string message)
+        private void TrySendMessage(Guid id, dynamic obj)
         {
+            string message = id.ToString() + "\tDESERIALIZE ERROR";
+
             try
             {
+                message = id.ToString() + "\t" + JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.None);
+
                 lock (this._messageQueue)
                 {
                     if (this._messageQueue.Count < 1000)
@@ -996,7 +1229,10 @@ namespace DarkHook
             }
             try
             {
-                File.AppendAllText("darkhook.log", "MESSAGE " + message + "\r\n");
+                lock (DarkHookLog)
+                {
+                    File.AppendAllText("darkhook.log", $"MESSAGE\t{message}\r\n");
+                }
             }
             catch { }
         }

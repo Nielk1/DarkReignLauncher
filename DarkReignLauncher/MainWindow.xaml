@@ -93,36 +93,6 @@
                 </bot:TransitionPresenter>
                 <Viewbox Grid.Row="1"
                          Stretch="Fill">
-                    <!--<StackPanel VerticalAlignment="Top"
-                                    HorizontalAlignment="Stretch"
-                                    x:Name="MenuItems"
-                                    Margin="10,0,0,0"
-                                    Width="352"
-                                    Height="300">
-                            <StackPanel.Resources>
-                                <Style TargetType="{x:Type local:OutlinedTextBlock}">
-                                    <Setter Property="FontFamily" Value="Verdana"/>
-                                    <Setter Property="FontSize" Value="15pt"/>
-                                    <Setter Property="FontWeight" Value="Black"/>
-                                    <Setter Property="TextWrapping" Value="NoWrap"/>
-                                    <Setter Property="Fill" Value="White"/>
-                                    <Setter Property="Stroke" Value="Black"/>
-                                    <Setter Property="StrokeThickness" Value="1"/>
-                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="Border.IsMouseOver" Value="True">
-                                            <Setter Property="Fill" Value="Orange"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Resources>
-                            <local:OutlinedTextBlock MouseDown="DarkReign_MouseDown">Dark Reign</local:OutlinedTextBlock>
-                            <local:OutlinedTextBlock MouseDown="Shadowhand_MouseDown">Rise of the Shadowhand</local:OutlinedTextBlock>
-                            <local:OutlinedTextBlock>Mods</local:OutlinedTextBlock>
-                            <local:OutlinedTextBlock>Update</local:OutlinedTextBlock>
-                            <local:OutlinedTextBlock>About</local:OutlinedTextBlock>
-                            <local:OutlinedTextBlock MouseDown="OutlinedTextBlock_MouseDown">Exit</local:OutlinedTextBlock>
-                        </StackPanel>-->
                     <ItemsControl VerticalAlignment="Top"
                                   HorizontalAlignment="Stretch"
                                   x:Name="MenuItems"
@@ -148,7 +118,7 @@
                                                              TextWrapping="NoWrap"
                                                              Fill="White"
                                                              Stroke="Black"
-                                                             StrokeThickness="1"
+                                                             StrokeThickness="0.9"
                                                              HorizontalAlignment="Right"
                                                              Grid.Column="0"/>
                                     <local:OutlinedTextBlock x:Name="MenuItemNote"
@@ -159,12 +129,11 @@
                                                              TextWrapping="NoWrap"
                                                              Fill="White"
                                                              Stroke="Gray"
-                                                             StrokeThickness="1"
+                                                             StrokeThickness="0.5"
                                                              HorizontalAlignment="Left"
                                                              Grid.Column="1"
                                                              Margin="5,6,0,0"
                                                              Visibility="{Binding ShowNote}"/>
-
                                 </Grid>
                                 <DataTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
@@ -205,17 +174,6 @@
                 </Viewbox>
             </Grid>
         </Border>
-        <!--<bot:TransitionPresenter x:Name="ParalaxLogo" Margin="100,10,100,100">
-            <bot:TransitionPresenter.Transition>
-                <bot:FadeTransition Duration="00:00:00.5"/>
-            </bot:TransitionPresenter.Transition>
-            <bot:TransitionPresenter.RenderTransform>
-                <TransformGroup>
-                    <TranslateTransform X="0" Y="0"/>
-                    <RotateTransform Angle="0"/>
-                </TransformGroup>
-            </bot:TransitionPresenter.RenderTransform>
-        </bot:TransitionPresenter>-->
         <Border Margin="0" BorderThickness="1" BorderBrush="{DynamicResource TranslucentGray}">
             <Border Margin="{Binding Mode=OneWay, Source={StaticResource CornerMargin}}" BorderThickness="1">
                 <Grid>
@@ -232,7 +190,7 @@
                             Click="CloseButton_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Canvas>
+                                <Canvas Background="Transparent">
                                     <Path Name="CloseButtonPath"
                                           Data="M0,0 L1,1 M0,1 L1,0"
                                           Stretch="Fill"
@@ -249,6 +207,18 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
+                    <local:OutlinedTextBlock x:Name="VersionInfo"
+                                             Text=""
+                                             FontFamily="Consolas"
+                                             FontSize="10pt"
+                                             FontWeight="Black"
+                                             TextWrapping="NoWrap"
+                                             Fill="White"
+                                             Stroke="Black"
+                                             StrokeThickness="0.3"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Bottom"
+                                             Margin="0,0,0,1"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="{Binding Mode=OneWay, Source={StaticResource CornerSize}}"/>

@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -31,14 +32,11 @@ namespace DarkReignLauncher
         TimeSpan ParalaxTimespan = new TimeSpan(0, 0, 0, 0, 50);
         TimeSpan ParalaxTimespan2 = new TimeSpan(0, 0, 0, 0, 500);
 
-        System.Windows.Threading.DispatcherTimer checkRestoreDefaultGraphics;
-
         const int ParalaxLim = 10;
 
         enum Mode
         {
             Default,
-            Mod,
             Mods,
             Options,
             Update,
@@ -49,15 +47,24 @@ namespace DarkReignLauncher
 
         ObservableCollection<LauncherMenuItem> CurrentMenuItems = new ObservableCollection<LauncherMenuItem>();
         ObservableCollection<LauncherMenuItem> ModMenuItems = new ObservableCollection<LauncherMenuItem>();
+        ObservableCollection<LauncherOptionItem> OptionList = new ObservableCollection<LauncherOptionItem>();
 
         ModListPanel MoreModsPanel;
+        OptionsPanel OptionsPanel;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            SetLogo("logo-patch.png");
-            SetBackground("bg-norm.png");
+            {
+                VersionInfo.Text = "PATCH: " + (File.Exists(@"patch.ver") ? File.ReadAllText(@"patch.ver").Trim() : "???");
+                VersionInfo.Text += "    LAUNCHER: " + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+                VersionInfo.Text += "    BOOTSTRAP: " + (File.Exists("bootstrap.exe") ? FileVersionInfo.GetVersionInfo("bootstrap.exe").FileVersion : "???");
+                VersionInfo.Text += "    DARKHOOK: " + (File.Exists("DarkHook.dll") ? FileVersionInfo.GetVersionInfo("DarkHook.dll").FileVersion : "???");
+            }
+
+            SetLogo(null);
+            SetBackground(null);
 
             this.Cursor = new Cursor(Application.GetResourceStream(new Uri("pack://application:,,,/dkreign.cur")).Stream);
             
@@ -65,23 +72,26 @@ namespace DarkReignLauncher
             binding1.Source = CurrentMenuItems;
             MenuItems.SetBinding(ItemsControl.ItemsSourceProperty, binding1);
 
-            string[] ModFiles = Directory.GetFiles("ldata", "*.modification", SearchOption.TopDirectoryOnly);
+            string[] ModFiles = Directory.GetFiles("ldata", "*.launchprofile", SearchOption.TopDirectoryOnly);
             List<ModInstructions> Mods = ModFiles.Select(dr => new ModInstructions(dr)).ToList();
 
-            Mods.Where(dr => dr.TopMenu).OrderBy(dr => dr.Sort ?? string.Empty).ThenBy(dr => dr.Title).ToList().ForEach(dr =>
-            {
-                string Title = dr.Title;
-                //if (Title.StartsWith("Dark Reign:")) Title = Title.Substring(11).TrimStart();
-                CurrentMenuItems.Add(new LauncherMenuItem()
+            Mods.Where(dr => dr.TopMenu)
+                .OrderBy(dr => string.IsNullOrWhiteSpace(dr.Sort) ? 1 : 0)
+                .ThenBy(dr => dr.Sort ?? string.Empty)
+                .ThenBy(dr => dr.Title).ToList().ForEach(dr =>
                 {
-                    ItemType = LauncherMenuItemType.Mod,
-                    Filename = dr.Filename,
-                    Text = Title,
-                    Note = dr.Note,
-                    Logo = dr.Logo,
-                    Background = dr.Background
+                    string Title = dr.Title;
+                    //if (Title.StartsWith("Dark Reign:")) Title = Title.Substring(11).TrimStart();
+                    CurrentMenuItems.Add(new LauncherMenuItem()
+                    {
+                        ItemType = LauncherMenuItemType.Mod,
+                        Filename = dr.Filename,
+                        Text = Title,
+                        Note = dr.Note,
+                        Logo = dr.Logo,
+                        Background = dr.Background
+                    });
                 });
-            });
 
             CurrentMenuItems.Add(new LauncherMenuItem() {
                 ItemType = LauncherMenuItemType.Mods,
@@ -94,20 +104,23 @@ namespace DarkReignLauncher
             CurrentMenuItems.Add(new LauncherMenuItem() { ItemType = LauncherMenuItemType.About, Text = "About" });
             CurrentMenuItems.Add(new LauncherMenuItem() { ItemType = LauncherMenuItemType.Exit, Text = "Exit" });
 
-            Mods.Where(dr => !dr.TopMenu).OrderBy(dr => dr.Sort ?? string.Empty).ThenBy(dr => dr.Title).ToList().ForEach(dr =>
-            {
-                string Title = dr.Title;
-                //if (Title.StartsWith("Dark Reign:")) Title = Title.Substring(11).TrimStart();
-                ModMenuItems.Add(new LauncherMenuItem()
+            Mods.Where(dr => !dr.TopMenu)
+                .OrderBy(dr => string.IsNullOrWhiteSpace(dr.Sort) ? 1 : 0)
+                .ThenBy(dr => dr.Sort ?? string.Empty)
+                .ThenBy(dr => dr.Title).ToList().ForEach(dr =>
                 {
-                    ItemType = LauncherMenuItemType.Mod,
-                    Filename = dr.Filename,
-                    Text = Title,
-                    Note = dr.Note,
-                    Logo = dr.Logo,
-                    Background = dr.Background
+                    string Title = dr.Title;
+                    //if (Title.StartsWith("Dark Reign:")) Title = Title.Substring(11).TrimStart();
+                    ModMenuItems.Add(new LauncherMenuItem()
+                    {
+                        ItemType = LauncherMenuItemType.Mod,
+                        Filename = dr.Filename,
+                        Text = Title,
+                        Note = dr.Note,
+                        Logo = dr.Logo,
+                        Background = dr.Background
+                    });
                 });
-            });
 
             MoreModsPanel = new ModListPanel(ModMenuItems);
 
@@ -115,18 +128,36 @@ namespace DarkReignLauncher
             MoreModsPanel.MenuItem_MouseEnter_Event += MenuItem_MouseEnter_HandleItem;
             MoreModsPanel.MenuItem_MouseLeave_Event += MenuItem_MouseLeave_HandleItem;
 
+            Mods.OrderBy(dr => dr.TopMenu ? 0 : 1)
+                .ThenBy(dr => string.IsNullOrWhiteSpace(dr.Sort) ? 1 : 0)
+                .ThenBy(dr => dr.Sort ?? string.Empty)
+                .ThenBy(dr => dr.Title).ToList().ForEach(dr =>
+                {
+                    if(dr.Options.Count > 0)
+                    {
+                        OptionList.Add(new LauncherOptionItem()
+                        {
+                            ModInstructions = dr,
+                        });
+                    }
+                });
+
+            OptionsPanel = new OptionsPanel(OptionList);
+
+
             dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += dispatcherTimer_Tick;
             dispatcherTimer.Interval = ParalaxTimespan;
             dispatcherTimer.Start();
-
-            checkRestoreDefaultGraphics = new System.Windows.Threading.DispatcherTimer();
-            checkRestoreDefaultGraphics.Tick += CheckRestoreDefaultGraphics_Tick;
-            checkRestoreDefaultGraphics.Interval = TimeSpan.FromSeconds(0.1);
         }
 
+        private string currentLG = null;
         private void SetLogo(string filename)
         {
+            if (string.IsNullOrWhiteSpace(filename)) filename = "logo-patch.png";
+            if (currentLG == filename) return;
+            currentLG = filename;
+
             Uri path = new Uri($@"pack://siteoforigin:,,,/ldata/{filename}");
             Image ParalaxLOGO = new Image();
             ParalaxLOGO.Source = new BitmapImage(path);
@@ -136,8 +167,13 @@ namespace DarkReignLauncher
             GameLogo.Content = ParalaxLOGO;
         }
 
+        private string currentBG = null;
         private void SetBackground(string filename)
         {
+            if (string.IsNullOrWhiteSpace(filename)) filename = "bg-norm.png";
+            if (currentBG == filename) return;
+            currentBG = filename;
+
             Uri path = new Uri($@"pack://siteoforigin:,,,/ldata/{filename}");
             Image ParalaxBG = new Image();
             ParalaxBG.Source = new BitmapImage(path);
@@ -289,11 +325,12 @@ namespace DarkReignLauncher
             switch (item.ItemType)
             {
                 case LauncherMenuItemType.Mod:
-                    {
-                        if (!string.IsNullOrWhiteSpace(item.Logo)) SetLogo(item.Logo);
-                        if (!string.IsNullOrWhiteSpace(item.Background)) SetBackground(item.Background);
-                        mode = Mode.Mod;
-                    }
+                    SetLogo(item.Logo);
+                    SetBackground(item.Background);
+                    break;
+                default:
+                    SetLogo(null);
+                    SetBackground(null);
                     break;
             }
         }
@@ -306,16 +343,11 @@ namespace DarkReignLauncher
         }
         private void MenuItem_MouseLeave_HandleItem(LauncherMenuItem item)
         {
-            switch (item.ItemType)
+            /*switch (item.ItemType)
             {
                 case LauncherMenuItemType.Mod:
-                    {
-                        checkRestoreDefaultGraphics.Stop();
-                        mode = Mode.Default;
-                        checkRestoreDefaultGraphics.Start();
-                    }
                     break;
-            }
+            }*/
         }
 
         private void MenuItem_MouseDown(object sender, MouseButtonEventArgs e)
@@ -354,7 +386,7 @@ namespace DarkReignLauncher
                     }
                     else
                     {
-                        SetInfo(new FrameworkElement());
+                        SetInfo(OptionsPanel);
                         mode = Mode.Options;
                     }
                     break;
@@ -390,16 +422,6 @@ namespace DarkReignLauncher
             }
         }
 
-        private void CheckRestoreDefaultGraphics_Tick(object sender, EventArgs e)
-        {
-            if(mode == Mode.Default)
-            {
-                SetLogo("logo-patch.png");
-                SetBackground("bg-norm.png");
-            }
-            checkRestoreDefaultGraphics.Stop();
-        }
-
         private void LaunchMod(string modname)
         {
             string exe = Environment.GetCommandLineArgs()[0]; // Command invocation part
@@ -426,6 +448,11 @@ namespace DarkReignLauncher
 
             this.Close();
         }
+    }
+
+    public class LauncherOptionItem
+    {
+        public ModInstructions ModInstructions { get; set; }
     }
 
     public class LauncherMenuItem

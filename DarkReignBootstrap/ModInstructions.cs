@@ -19,10 +19,24 @@ namespace DarkReignBootstrap
         public List<Tuple<IntPtr, byte[]>> AsmInjections { get; set; }
         public List<string> ModPaths { get; set; }
         public string SaveFolder { get; set; }
+        public List<ModOption> Options { get; set; }
 
         public ModInstructions(string ModFilePath)
         {
+            Options = new List<ModOption>();
+
             Filename = Path.GetFileNameWithoutExtension(ModFilePath);
+
+            string FilenameOptions = @"ldata\" + Filename + ".opt";
+            HashSet<string> OptionCheck = new HashSet<string>();
+            if (File.Exists(FilenameOptions))
+            {
+                foreach(string line in File.ReadAllLines(FilenameOptions))
+                {
+                    if (line.Length > 0)
+                        OptionCheck.Add(line);
+                }
+            }
 
             Title = Path.GetFileNameWithoutExtension(ModFilePath);
             AsmInjections = new List<Tuple<IntPtr, byte[]>>();
@@ -33,6 +47,43 @@ namespace DarkReignBootstrap
             for (int i = 0; i < lines.Length; i++)
             {
                 string[] lineParts = lines[i].Split(new char[] { '\t' });
+
+                if(lineParts[0] == "OPT")
+                {
+                    if(lineParts.Length > 4)
+                    {
+                        if (OptionCheck.Contains(lineParts[1]))
+                        {
+                            Options.Add(new ModOption()
+                            {
+                                ID = lineParts[1],
+                                Title = lineParts[2],
+                                Parent = this,
+                                Active = true,
+                            });
+
+                            // we are an option that is active, that means we skip the first 3 data blocks which are the magic string, optionid, and description
+                            lineParts = lineParts.Skip(3).ToArray();
+                        }
+                        else
+                        {
+                            Options.Add(new ModOption()
+                            {
+                                ID = lineParts[1],
+                                Title = lineParts[2],
+                                Parent = this,
+                                Active = false,
+                            });
+
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
                 switch (lineParts[0])
                 {
                     case "TITLE":
@@ -128,6 +179,36 @@ namespace DarkReignBootstrap
             }
         }
 
+        /// <summary>
+        /// Note that this does not activate the option in this instance but simply saves to disk it should be active next time we construct
+        /// To make this actually update would require rescanning the launcherprofile or tracking that it is optional instead of skipping disabled optional items
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="val"></param>
+        public void SetOption(string id, bool val)
+        {
+            string FilenameOptions = @"ldata\" + Filename + ".opt";
+            HashSet<string> OptionCheck = new HashSet<string>();
+            if (File.Exists(FilenameOptions))
+            {
+                foreach (string line in File.ReadAllLines(FilenameOptions))
+                {
+                    if (line.Length > 0)
+                        OptionCheck.Add(line);
+                }
+            }
+            if(OptionCheck.Contains(id))
+            {
+                if (!val) OptionCheck.Remove(id);
+            }
+            else
+            {
+                if (val) OptionCheck.Add(id);
+            }
+
+            File.WriteAllLines(FilenameOptions, OptionCheck.ToArray());
+        }
+
         private byte[] StringToByteArray(string hex)
         {
             return Enumerable.Range(0, hex.Length)
@@ -192,6 +273,20 @@ namespace DarkReignBootstrap
                 Console.ResetColor();
                 Console.WriteLine(e.ToString());
             }
+        }
+    }
+
+    public class ModOption
+    {
+        public string ID { get; set; }
+        public string Title { get; set; }
+        public bool Active { get; set; }
+
+        public ModInstructions Parent { get; set; }
+
+        public void Set(bool Active)
+        {
+            Parent.SetOption(ID, Active);
         }
     }
 }

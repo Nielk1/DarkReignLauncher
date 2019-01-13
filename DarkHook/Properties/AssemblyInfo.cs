@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DarkHook")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("DLL Hooks for Dark Reign Launcher")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DarkHook")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
+[assembly: AssemblyCompany("John \"Nielk1\" Klein")]
+[assembly: AssemblyProduct("Dark Hook")]
+[assembly: AssemblyCopyright("Copyright ©John \"Nielk1\" Klein 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
