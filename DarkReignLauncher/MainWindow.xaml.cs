@@ -57,7 +57,7 @@ namespace DarkReignLauncher
             InitializeComponent();
 
             {
-                VersionInfo.Text = "PATCH: " + (File.Exists(@"patch.ver") ? File.ReadAllText(@"patch.ver").Trim() : "???");
+                VersionInfo.Text = "PATCH: " + (File.Exists(@"ldata\patch.ver") ? File.ReadAllText(@"ldata\patch.ver").Trim() : "???");
                 VersionInfo.Text += "    LAUNCHER: " + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
                 VersionInfo.Text += "    BOOTSTRAP: " + (File.Exists("bootstrap.exe") ? FileVersionInfo.GetVersionInfo("bootstrap.exe").FileVersion : "???");
                 VersionInfo.Text += "    DARKHOOK: " + (File.Exists("DarkHook.dll") ? FileVersionInfo.GetVersionInfo("DarkHook.dll").FileVersion : "???");
