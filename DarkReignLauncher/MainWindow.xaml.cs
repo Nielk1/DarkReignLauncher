@@ -328,6 +328,10 @@ namespace DarkReignLauncher
                     SetLogo(item.Logo);
                     SetBackground(item.Background);
                     break;
+                //case LauncherMenuItemType.About:
+                //    SetLogo(null);
+                //    SetBackground(null);
+                //    break;
                 default:
                     SetLogo(null);
                     SetBackground(null);

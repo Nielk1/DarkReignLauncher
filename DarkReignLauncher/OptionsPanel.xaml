@@ -1,9 +1,11 @@
-﻿<UserControl x:Class="DarkReignLauncher.OptionsPanel"
+﻿<UserControl
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:std="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:DarkReignLauncher"
+             xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="DarkReignLauncher.OptionsPanel"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="352">
     <ScrollViewer VerticalAlignment="Top"
@@ -12,57 +14,298 @@
                   VerticalScrollBarVisibility="Auto"
                   Width="342"
                   Height="600">
-        <ItemsControl VerticalAlignment="Top"
-                      HorizontalAlignment="Stretch"
-                      x:Name="ModItems">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel DataContext="{Binding }">
-                        <local:OutlinedTextBlock x:Name="MenuItemText"
-                                                 Text="{Binding ModInstructions.Title}"
-                                                 FontFamily="Verdana"
-                                                 FontSize="15pt"
-                                                 FontWeight="Black"
-                                                 TextWrapping="NoWrap"
-                                                 Fill="White"
-                                                 Stroke="Black"
-                                                 StrokeThickness="0.9"
-                                                 HorizontalAlignment="Left"/>
-                        <ItemsControl VerticalAlignment="Top"
-                                      HorizontalAlignment="Stretch"
-                                      ItemsSource="{Binding ModInstructions.Options}"
-                                      x:Name="OptionItems"
-                                      Margin="0,0,0,5">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,2,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="15"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <CheckBox Grid.Column="0"
-                                                  IsChecked="{Binding Active}"
-                                                  DataContext="{Binding }"
-                                                  Checked="CheckBox_Checked"
-                                                  Unchecked="CheckBox_Unchecked"/>
-                                        <local:OutlinedTextBlock Text="{Binding Title}"
-                                                                 FontFamily="Verdana"
-                                                                 FontSize="8pt"
-                                                                 FontWeight="Black"
-                                                                 TextWrapping="NoWrap"
-                                                                 Fill="White"
-                                                                 Stroke="Black"
-                                                                 StrokeThickness="0.3"
-                                                                 HorizontalAlignment="Left"
-                                                                 Grid.Column="1"
-                                                                 Margin="2,0,0,0"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <StackPanel Margin="5,5,5,5">
+            <ItemsControl VerticalAlignment="Top"
+                          HorizontalAlignment="Stretch"
+                          x:Name="ModItems">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel DataContext="{Binding ''}">
+                            <local:OutlinedTextBlock x:Name="MenuItemText"
+                                                     Text="{Binding ModInstructions.Title}"
+                                                     FontFamily="Verdana"
+                                                     FontSize="15pt"
+                                                     FontWeight="Black"
+                                                     TextWrapping="NoWrap"
+                                                     Fill="White"
+                                                     Stroke="Black"
+                                                     StrokeThickness="0.9"
+                                                     HorizontalAlignment="Left"/>
+                            <ItemsControl VerticalAlignment="Top"
+                                          HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding ModInstructions.Options}"
+                                          x:Name="OptionItems"
+                                          Margin="0,0,0,5">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="15"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox Grid.Column="0"
+                                                      IsChecked="{Binding Active}"
+                                                      DataContext="{Binding ''}"
+                                                      Checked="CheckBox_Checked"
+                                                      Unchecked="CheckBox_Unchecked"/>
+                                            <local:OutlinedTextBlock Text="{Binding Title}"
+                                                                     FontFamily="Verdana"
+                                                                     FontSize="8pt"
+                                                                     FontWeight="Black"
+                                                                     TextWrapping="NoWrap"
+                                                                     Fill="White"
+                                                                     Stroke="Black"
+                                                                     StrokeThickness="0.3"
+                                                                     HorizontalAlignment="Left"
+                                                                     Grid.Column="1"
+                                                                     Margin="2,0,0,0"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <local:OutlinedTextBlock Text="Direct Draw"
+                                     FontFamily="Verdana"
+                                     FontSize="15pt"
+                                     FontWeight="Black"
+                                     TextWrapping="NoWrap"
+                                     Fill="White"
+                                     Stroke="Black"
+                                     StrokeThickness="0.9"
+                                     HorizontalAlignment="Left"/>
+            <!--<Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Ddraw_ddraw_curres" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Force Current Resolution" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>-->
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Ddraw_ddraw_fullscreen" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Fullscreen" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Ddraw_ddraw_windowed" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Windowed" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Ddraw_ddraw_maintas" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Maintain Aspect Ratio" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Ddraw_ddraw_boxing" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Integer Scaling" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Ddraw_ddraw_border" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Window Border" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Ddraw_ddraw_adjmouse" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Scale Cursor Movement" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox FontSize="10pt" Grid.Row="0" Grid.Column="1" x:Name="Ddraw_ddraw_renderer" SelectionChanged="Renderer_SelectionChanged" Text="Renderer">
+                    <std:String>auto</std:String>
+                    <std:String>opengl</std:String>
+                    <std:String>gdi</std:String>
+                    <std:String>direct3d9</std:String>
+                </ComboBox>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="0" Text="Renderer" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox FontSize="10pt" Grid.Row="0" Grid.Column="1" x:Name="Ddraw_ddraw_shader" Text="Shader" SelectionChanged="Shader_SelectionChanged"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="0" Text="Shader" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <local:OutlinedTextBlock Text="Logging"
+                                     FontFamily="Verdana"
+                                     FontSize="15pt"
+                                     FontWeight="Black"
+                                     TextWrapping="NoWrap"
+                                     Fill="White"
+                                     Stroke="Black"
+                                     StrokeThickness="0.9"
+                                     HorizontalAlignment="Left"/>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_ClearLog" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Clear Log on startup" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_LogToFile" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Log to File" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableErrors" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable Errors" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableWarnings" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable Warnings" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableDiagnostics" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable Diagnostics" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableNetErrors" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable Net Errors" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableNetWarnings" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable Net Warnings" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableNetDiagnostics" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable Net Diagnostics" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableNetStatistics" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable Net Statistics" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableAFI" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable AFI" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableAJP" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable AJP" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableBCA" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable BCA" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableCBC" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable CBC" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableCRA" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable CRA" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableGDM" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable GDM" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableILD" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable ILD" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableMBJ" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable MBJ" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="Tactics_Logging_EnableMDV" Checked="CheckBoxOpt_Checked" Unchecked="CheckBoxOpt_Unchecked"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="1" Text="Enable MDV" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+            </Grid>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

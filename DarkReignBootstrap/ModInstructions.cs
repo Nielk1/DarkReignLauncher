@@ -153,10 +153,17 @@ namespace DarkReignBootstrap
                                     string[] asmLineParts = asmLine.Split(new char[] { '\t' }, 3);
                                     if (asmLineParts.Length > 1) // at least 2 parts
                                     {
-                                        int addr = Convert.ToInt32(asmLineParts[0], 16);
-                                        byte[] data = StringToByteArray(asmLineParts[1]);
+                                        if (!asmLineParts[0].ToUpperInvariant().Any(dr => !new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' }.Contains(dr)))
+                                        {
+                                            try
+                                            {
+                                                int addr = Convert.ToInt32(asmLineParts[0], 16);
+                                                byte[] data = StringToByteArray(asmLineParts[1]);
 
-                                        AsmInjections.Add(new Tuple<IntPtr, byte[]>(new IntPtr(addr), data));
+                                                AsmInjections.Add(new Tuple<IntPtr, byte[]>(new IntPtr(addr), data));
+                                            }
+                                            catch { }
+                                        }
                                     }
                                 }
                             }
