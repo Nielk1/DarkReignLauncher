@@ -22,7 +22,7 @@ namespace DarkReignLauncher
     /// <summary>
     /// Interaction logic for OptionsPanel.xaml
     /// </summary>
-    public partial class OptionsPanel : UserControl
+    public partial class OptionsPanel : Border
     {
         private IniDataParser parser;
 

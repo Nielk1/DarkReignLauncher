@@ -54,7 +54,11 @@ namespace DarkReignLauncher
 
         public MainWindow()
         {
+            Console.WriteLine("Initalizing");
+
             InitializeComponent();
+
+            Console.WriteLine("Initalized");
 
             {
                 VersionInfo.Text = "PATCH: " + (File.Exists(@"ldata\patch.ver") ? File.ReadAllText(@"ldata\patch.ver").Trim() : "???");

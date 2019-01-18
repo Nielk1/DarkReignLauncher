@@ -19,7 +19,7 @@ namespace DarkReignLauncher
     /// <summary>
     /// Interaction logic for ModListPanel.xaml
     /// </summary>
-    public partial class ModListPanel : UserControl
+    public partial class ModListPanel : Border
     {
         public ModListPanel(System.Collections.ObjectModel.ObservableCollection<LauncherMenuItem> CurrentMenuItems)
         {
