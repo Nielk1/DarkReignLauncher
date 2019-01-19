@@ -168,6 +168,7 @@ namespace DarkHook
         [JsonConverter(typeof(StringEnumConverter))]
         enum PathType
         {
+            Internal, // related to our hook engine
             NotFilePass, // Starts with \\
             HardPass,
             CachedPass,
@@ -236,8 +237,16 @@ namespace DarkHook
                 filename = filename.Substring(2);
             }
 
+            switch (filename.ToLowerInvariant())
+            {
+                case "darkhook.log":
+                case "newtonsoft.json.dll":
+                    type = PathType.Internal;
+                    return originalFilename;
+            }
+
             // it's a save data request
-            if (filename.StartsWith(@"save\"))
+                if (filename.StartsWith(@"save\"))
             {
                 if (!string.IsNullOrWhiteSpace(SaveFolder))
                 {
@@ -461,6 +470,8 @@ namespace DarkHook
                 PathType dirType;
                 string redirectedFilename = GetFirstValidPath(filename, out dirType);
                 //if(dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
+                //if (dirType != PathType.Internal) // we end up trapped on some OSs if we try to log the creation of our log
+                if (dirType != PathType.Internal && dirType != PathType.NotFilePass && dirType != PathType.HardPass) // we end up trapped on some OSs if we try to log the creation of our log
                     TrySendMessage(callID, new
                     {
                         function = "CreateFileW",
