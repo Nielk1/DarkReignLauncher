@@ -244,6 +244,58 @@ namespace DarkReignBootstrap
             proc.Resume();
         }
 
+        public Process DoFunctionHook(string proc, string args)
+        {
+            // Will contain the name of the IPC server channel
+            string channelName = null;
+
+            // Create the IPC server using the FileMonitorIPC.ServiceInterface class as a singleton
+            EasyHook.RemoteHooking.IpcCreateServer<DarkHook.ServerInterface>(ref channelName, System.Runtime.Remoting.WellKnownObjectMode.Singleton);
+
+            // Get the full path to the assembly we want to inject into the target process
+            string injectionLibrary = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "DarkHook.dll");
+
+            try
+            {
+                // Injecting into existing process by Id
+                Console.WriteLine("Attempting to create and inject into process");
+                int procID = 0;
+
+                // inject into existing process
+                EasyHook.RemoteHooking.CreateAndInject(
+                    proc,
+                    args,
+                    0,
+                    injectionLibrary,   // 32-bit library to inject (if target is 32-bit)
+                    injectionLibrary,   // 64-bit library to inject (if target is 64-bit)
+                    out procID,
+                    channelName,        // the parameters to pass into injected library
+                    ModPaths,
+                    SaveFolder ?? string.Empty
+                );
+
+                if (procID > 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Application ID found, ID is {procID}");
+                    Console.ResetColor();
+                    return Process.GetProcessById(procID);
+                }
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Application ID not found");
+                Console.ResetColor();
+                return null;
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("There was an error while injecting into target:");
+                Console.ResetColor();
+                Console.WriteLine(e.ToString());
+            }
+            return null;
+        }
+
         public void DoFunctionHook(Process proc)
         {
             // Will contain the name of the IPC server channel

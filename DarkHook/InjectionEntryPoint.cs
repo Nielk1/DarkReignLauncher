@@ -85,11 +85,12 @@ namespace DarkHook
             // Injection is now complete and the server interface is connected
             _server.IsInstalled(EasyHook.RemoteHooking.GetCurrentProcessId());
 
-            // Install hooks
+            File.WriteAllText("darkhook.log", "DarkHook Log " + DateTime.Now + "\r\n");
 
+            // Install hooks
             // CreateFile https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx
             var createFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "CreateFileW"), new CreateFile_Delegate(CreateFile_Hook), this);
-            //var deleteFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "DeleteFileW"), new DeleteFile_Delegate(DeleteFile_Hook), this);
+            ////var deleteFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "DeleteFileW"), new DeleteFile_Delegate(DeleteFile_Hook), this);
             var getPrivateProfileStringHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "GetPrivateProfileStringA"), new GetPrivateProfileString_Delegate(GetPrivateProfileString_Hook), this);
             var findFirstFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindFirstFileA"), new FindFirstFile_Delegate(FindFirstFile_Hook), this);
             var findNextFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindNextFileA"), new FindNextFile_Delegate(FindNextFile_Hook), this);
@@ -98,11 +99,9 @@ namespace DarkHook
             var AIL_redbook_volumeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_volume@4"), new AIL_redbook_volume_Delegate(AIL_redbook_volume_Hook), this);
             var AIL_redbook_set_volumeeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_set_volume@8"), new AIL_redbook_set_volume_Delegate(AIL_redbook_set_volume_Hook), this);
 
-            File.WriteAllText("darkhook.log", "DarkHook Log " + DateTime.Now + "\r\n");
-
             // Activate hooks on all threads except the current thread
             createFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
-            //deleteFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+            ////deleteFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             getPrivateProfileStringHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             findFirstFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             findNextFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
@@ -149,7 +148,7 @@ namespace DarkHook
 
             // Remove hooks
             createFileHook.Dispose();
-            //deleteFileHook.Dispose();
+            ////deleteFileHook.Dispose();
             getPrivateProfileStringHook.Dispose();
             findFirstFileHook.Dispose();
             findNextFileHook.Dispose();

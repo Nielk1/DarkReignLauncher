@@ -31,7 +31,7 @@ namespace DarkReignBootstrap
 
                     Console.WriteLine($"DKREIGN.EXE {CleanArguments}");
 
-                    ProcessStartInfo info = new ProcessStartInfo()
+                    /*ProcessStartInfo info = new ProcessStartInfo()
                     {
                         FileName = "DKREIGN.EXE",
 
@@ -47,6 +47,14 @@ namespace DarkReignBootstrap
                     if (DarkReignProcess != null && !DarkReignProcess.HasExited)
                     {
                         Script.DoFunctionHook(DarkReignProcess);
+                    }*/
+
+                    Process DarkReignProcess = Script.DoFunctionHook("DKREIGN.EXE", CleanArguments);
+
+                    if (DarkReignProcess == null && DarkReignProcess.HasExited)
+                    {
+                        Console.WriteLine("Application did not start");
+                        return;
                     }
 
                     // Wait 150 MS or till user input is possible.
@@ -80,7 +88,9 @@ namespace DarkReignBootstrap
                                 {
                                     // We see a dialog box, which means our ASM injection was too early
                                     // Apply the injections again
+                                    Console.WriteLine("Injecting ASM");
                                     Script.DoAsmInjections(DarkReignProcess);
+                                    Console.WriteLine("Injected ASM");
 
                                     // Send the MessageBoxA the Yes button ID code, this will work reguardless of localization
 #if !DEBUG

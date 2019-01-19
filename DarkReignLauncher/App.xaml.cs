@@ -16,6 +16,9 @@ namespace DarkReignLauncher
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            //Console.WriteLine("Wait for Optional Debugger, press any key to continue");
+            //Console.ReadKey(true);
+
             PresentationTraceSources.Refresh();
             PresentationTraceSources.DataBindingSource.Listeners.Add(new ConsoleTraceListener());
             PresentationTraceSources.DataBindingSource.Listeners.Add(new DebugTraceListener());

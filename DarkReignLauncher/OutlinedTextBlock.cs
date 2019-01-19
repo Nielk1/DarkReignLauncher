@@ -84,9 +84,7 @@ namespace DarkReignLauncher
 
         public OutlinedTextBlock()
         {
-Console.WriteLine("Constructing OutlinedTextBlock");
             this.TextDecorations = new TextDecorationCollection();
-Console.WriteLine("Constructed OutlinedTextBlock");
         }
 
         public Brush Fill
@@ -205,26 +203,22 @@ Console.WriteLine("Constructed OutlinedTextBlock");
 
         private static void OnFormattedTextInvalidated(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
         {
-Console.WriteLine("Start OnFormattedTextInvalidated");
             var outlinedTextBlock = (OutlinedTextBlock)dependencyObject;
             outlinedTextBlock.formattedText = null;
             outlinedTextBlock.textGeometry = null;
 
             outlinedTextBlock.InvalidateMeasure();
             outlinedTextBlock.InvalidateVisual();
-Console.WriteLine("End OnFormattedTextInvalidated");
         }
 
         private static void OnFormattedTextUpdated(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
         {
-Console.WriteLine("Start OnFormattedTextUpdated");
             var outlinedTextBlock = (OutlinedTextBlock)dependencyObject;
             outlinedTextBlock.UpdateFormattedText();
             outlinedTextBlock.textGeometry = null;
 
             outlinedTextBlock.InvalidateMeasure();
             outlinedTextBlock.InvalidateVisual();
-Console.WriteLine("End OnFormattedTextUpdated");
         }
 
         private void EnsureFormattedText()
