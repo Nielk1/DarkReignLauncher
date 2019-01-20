@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DarkHook
 {
@@ -92,8 +91,8 @@ namespace DarkHook
             var createFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "CreateFileW"), new CreateFile_Delegate(CreateFile_Hook), this);
             ////var deleteFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "DeleteFileW"), new DeleteFile_Delegate(DeleteFile_Hook), this);
             var getPrivateProfileStringHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "GetPrivateProfileStringA"), new GetPrivateProfileString_Delegate(GetPrivateProfileString_Hook), this);
-            var findFirstFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindFirstFileA"), new FindFirstFile_Delegate(FindFirstFile_Hook), this);
-            var findNextFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindNextFileA"), new FindNextFile_Delegate(FindNextFile_Hook), this);
+            var findFirstFileHookW = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindFirstFileW"), new FindFirstFileW_Delegate(FindFirstFileW_Hook), this);
+            var findNextFileHookW = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindNextFileW"), new FindNextFileW_Delegate(FindNextFileW_Hook), this);
             var findCloseHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindClose"), new FindClose_Delegate(FindClose_Hook), this);
             var _accessHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("msvcrt.dll", "_access"), new _access_Delegate(_access_Hook), this); 
             var AIL_redbook_volumeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_volume@4"), new AIL_redbook_volume_Delegate(AIL_redbook_volume_Hook), this);
@@ -103,14 +102,22 @@ namespace DarkHook
             createFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             ////deleteFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             getPrivateProfileStringHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
-            findFirstFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
-            findNextFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+            findFirstFileHookW.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+            findNextFileHookW.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             findCloseHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             _accessHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             AIL_redbook_volumeHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             AIL_redbook_set_volumeeHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
 
-            _server.ReportMessage(context.HostPID, "CreateFileW, DeleteFileW, FindFirstFileA, FindNextFileA, FindCloseA hooks installed");
+            _server.ReportMessage(context.HostPID, @"Function hooks installed:
+kernel32.dll :: CreateFileW
+kernel32.dll :: GetPrivateProfileStringA  - Overriding packman reads
+kernel32.dll :: FindFirstFileW            - File redirection, access virtual file pool
+kernel32.dll :: FindNextFileW             - File redirection, access virtual file pool
+kernel32.dll :: FindClose                 - File redirection, access virtual file pool
+msvcrt.dll   :: _access                   - File redirection, confirming file is readable
+mss32.dll    :: _AIL_redbook_volume@4     - Redirect music get volume request
+mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
             // Wake up the process (required if using RemoteHooking.CreateAndInject)
             EasyHook.RemoteHooking.WakeUpProcess();
@@ -150,8 +157,8 @@ namespace DarkHook
             createFileHook.Dispose();
             ////deleteFileHook.Dispose();
             getPrivateProfileStringHook.Dispose();
-            findFirstFileHook.Dispose();
-            findNextFileHook.Dispose();
+            findFirstFileHookW.Dispose();
+            findNextFileHookW.Dispose();
             findCloseHook.Dispose();
             _accessHook.Dispose();
             AIL_redbook_volumeHook.Dispose();
@@ -246,7 +253,7 @@ namespace DarkHook
             }
 
             // it's a save data request
-                if (filename.StartsWith(@"save\"))
+            if (filename.StartsWith(@"save\"))
             {
                 if (!string.IsNullOrWhiteSpace(SaveFolder))
                 {
@@ -399,11 +406,11 @@ namespace DarkHook
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         delegate IntPtr CreateFile_Delegate(String filename, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi, SetLastError = true)]
-        delegate IntPtr FindFirstFile_Delegate(string lpFileName, out Kernel32.WIN32_FIND_DATAA lpFindFileData);
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+        delegate IntPtr FindFirstFileW_Delegate(string lpFileName, out Kernel32.WIN32_FIND_DATAW lpFindFileData);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi, SetLastError = true)]
-        delegate bool FindNextFile_Delegate(IntPtr hFindFile, out Kernel32.WIN32_FIND_DATAA lpFindFileData);
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+        delegate bool FindNextFileW_Delegate(IntPtr hFindFile, out Kernel32.WIN32_FIND_DATAW lpFindFileData);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
         delegate bool FindClose_Delegate(IntPtr hFindFile);
@@ -422,7 +429,7 @@ namespace DarkHook
             try
             {
                 PathType dirType;
-                string redirectedFilename = GetFirstValidPath(filename, out dirType);
+                string redirectedFilename = GetFirstValidPath(filename.ToLowerInvariant(), out dirType);
                 //if (dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
                     TrySendMessage(callID, new
                     {
@@ -468,7 +475,7 @@ namespace DarkHook
             try
             {
                 PathType dirType;
-                string redirectedFilename = GetFirstValidPath(filename, out dirType);
+                string redirectedFilename = GetFirstValidPath(filename.ToLowerInvariant(), out dirType);
                 //if(dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
                 //if (dirType != PathType.Internal) // we end up trapped on some OSs if we try to log the creation of our log
                 if (dirType != PathType.Internal && dirType != PathType.NotFilePass && dirType != PathType.HardPass) // we end up trapped on some OSs if we try to log the creation of our log
@@ -777,13 +784,13 @@ namespace DarkHook
                 FileIndex = -1,
             };
 
-            Dictionary<string, Kernel32.WIN32_FIND_DATAA> files = new Dictionary<string, Kernel32.WIN32_FIND_DATAA>();
+            Dictionary<string, Kernel32.WIN32_FIND_DATAW> files = new Dictionary<string, Kernel32.WIN32_FIND_DATAW>();
             foreach (string modpath in ModPaths)
             {
                 string newPath = $@"mods\{modpath}\" + path.Substring(5);
 
-                Kernel32.WIN32_FIND_DATAA tmp;
-                IntPtr Find = Kernel32.FindFirstFileA(newPath, out tmp);
+                Kernel32.WIN32_FIND_DATAW tmp;
+                IntPtr Find = Kernel32.FindFirstFileW(newPath, out tmp);
                 if (Find == Kernel32.INVALID_HANDLE_VALUE)
                 {
                     continue;
@@ -794,7 +801,7 @@ namespace DarkHook
                 }
                 for(; ;)
                 {
-                    if (!Kernel32.FindNextFileA(Find, out tmp))
+                    if (!Kernel32.FindNextFileW(Find, out tmp))
                         break;
                     string intendedPath = tmp.cFileName.ToLowerInvariant();
                     if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
@@ -802,8 +809,8 @@ namespace DarkHook
                 Kernel32.FindClose(Find);
             }
             {
-                Kernel32.WIN32_FIND_DATAA tmp;
-                IntPtr Find = Kernel32.FindFirstFileA(path, out tmp);
+                Kernel32.WIN32_FIND_DATAW tmp;
+                IntPtr Find = Kernel32.FindFirstFileW(path, out tmp);
                 if (Find != Kernel32.INVALID_HANDLE_VALUE)
                 {
                     {
@@ -812,7 +819,7 @@ namespace DarkHook
                     }
                     for (; ; )
                     {
-                        if (!Kernel32.FindNextFileA(Find, out tmp))
+                        if (!Kernel32.FindNextFileW(Find, out tmp))
                             break;
                         string intendedPath = tmp.cFileName.ToLowerInvariant();
                         if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
@@ -821,12 +828,12 @@ namespace DarkHook
                 }
             }
 
-            meta.FileMap = files.OrderBy(dr => dr.Key).Select(dr => new Tuple<string, Kernel32.WIN32_FIND_DATAA>(dr.Key, dr.Value)).ToList();
+            meta.FileMap = files.OrderBy(dr => dr.Key).Select(dr => new Tuple<string, Kernel32.WIN32_FIND_DATAW>(dr.Key, dr.Value)).ToList();
 
             return meta;
         }
 
-        private Kernel32.WIN32_FIND_DATAA GetNextFile(IntPtr findPtr, out uint error, out bool success)
+        private Kernel32.WIN32_FIND_DATAW GetNextFile(IntPtr findPtr, out uint error, out bool success)
         {
             lock(FindFileOverides)
             {
@@ -836,17 +843,17 @@ namespace DarkHook
                 {
                     error = Kernel32.ERROR_FILE_NOT_FOUND;
                     success = false;
-                    return new Kernel32.WIN32_FIND_DATAA();
+                    return new Kernel32.WIN32_FIND_DATAW();
                 }
 
                 if (FindFileOverides[findPtr].FileIndex >= FindFileOverides[findPtr].FileMap.Count)
                 {
                     error = Kernel32.ERROR_NO_MORE_FILES;
                     success = false;
-                    return new Kernel32.WIN32_FIND_DATAA();
+                    return new Kernel32.WIN32_FIND_DATAW();
                 }
 
-                Tuple<string, Kernel32.WIN32_FIND_DATAA> FilePath = FindFileOverides[findPtr].FileMap[FindFileOverides[findPtr].FileIndex];
+                Tuple<string, Kernel32.WIN32_FIND_DATAW> FilePath = FindFileOverides[findPtr].FileMap[FindFileOverides[findPtr].FileIndex];
 
                 error = 0;
                 success = true;
@@ -854,7 +861,7 @@ namespace DarkHook
             }
         }
 
-        IntPtr FindFirstFile_Hook(string filename, out Kernel32.WIN32_FIND_DATAA lpFindFileData)
+        IntPtr FindFirstFileW_Hook(string filename, out Kernel32.WIN32_FIND_DATAW lpFindFileData)
         {
             Guid callID = Guid.NewGuid();
 
@@ -863,10 +870,10 @@ namespace DarkHook
                 // wierd path like a HID device
                 if (filename.StartsWith(@"\\"))
                 {
-                    IntPtr retVal = Kernel32.FindFirstFileA(filename, out lpFindFileData);
+                    IntPtr retVal = Kernel32.FindFirstFileW(filename, out lpFindFileData);
                     TrySendMessage(callID, new
                     {
-                        function = "FindFirstFileA",
+                        function = "FindFirstFileW",
                         module = "kernel32",
                         paramaters = new { filename = filename },
                         @return = retVal,
@@ -885,10 +892,10 @@ namespace DarkHook
                     // even though it's rooted, it's rooted somewhere other than our game folder
                     if (!filename.StartsWith(BasePath))
                     {
-                        IntPtr retVal = Kernel32.FindFirstFileA(filename, out lpFindFileData);
+                        IntPtr retVal = Kernel32.FindFirstFileW(filename, out lpFindFileData);
                         TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileA",
+                            function = "FindFirstFileW",
                             module = "kernel32",
                             paramaters = new { filename = filename },
                             @return = retVal,
@@ -921,10 +928,10 @@ namespace DarkHook
                         string SaveDir = Path.GetDirectoryName(filename);
                         if (!Directory.Exists(SaveDir))
                             Directory.CreateDirectory(SaveDir);
-                        IntPtr retVal = Kernel32.FindFirstFileA(filename, out lpFindFileData);
+                        IntPtr retVal = Kernel32.FindFirstFileW(filename, out lpFindFileData);
                         TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileA",
+                            function = "FindFirstFileW",
                             module = "kernel32",
                             paramaters = new { filename = originalFilename },
                             @return = retVal,
@@ -934,10 +941,10 @@ namespace DarkHook
                         return retVal;
                     }
                     {
-                        IntPtr retVal = Kernel32.FindFirstFileA(originalFilename, out lpFindFileData);
+                        IntPtr retVal = Kernel32.FindFirstFileW(originalFilename, out lpFindFileData);
                         TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileA",
+                            function = "FindFirstFileW",
                             module = "kernel32",
                             paramaters = new { filename = originalFilename },
                             @return = retVal,
@@ -957,7 +964,7 @@ namespace DarkHook
 
                         lock (FindFileOverides)
                         {
-                            FindFileOverides[(IntPtr)retValX] = GenerateFindData(filename);
+                            FindFileOverides[(IntPtr)retValX] = GenerateFindData(filename.ToLowerInvariant());
 
                             uint error = 0;
                             bool success = false;
@@ -970,7 +977,7 @@ namespace DarkHook
                                 retValX.Free();
                                 TrySendMessage(callID, new
                                 {
-                                    function = "FindFirstFileA",
+                                    function = "FindFirstFileW",
                                     module = "kernel32",
                                     paramaters = new { filename = originalFilename },
                                     @return = Kernel32.INVALID_HANDLE_VALUE,
@@ -982,7 +989,7 @@ namespace DarkHook
 
                             TrySendMessage(callID, new
                             {
-                                function = "FindFirstFileA",
+                                function = "FindFirstFileW",
                                 module = "kernel32",
                                 paramaters = new { filename = originalFilename },
                                 @return = (IntPtr)retValX,
@@ -994,11 +1001,11 @@ namespace DarkHook
                     }
                     {
                         // we have no mods, use a normal scan
-                        IntPtr retVal = Kernel32.FindFirstFileA(originalFilename, out lpFindFileData);
+                        IntPtr retVal = Kernel32.FindFirstFileW(originalFilename, out lpFindFileData);
                         int error = Marshal.GetLastWin32Error();
                         TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileA",
+                            function = "FindFirstFileW",
                             module = "kernel32",
                             paramaters = new { filename = originalFilename },
                             @return = retVal,
@@ -1009,11 +1016,11 @@ namespace DarkHook
                     }
                 }
                 {
-                    IntPtr retVal = Kernel32.FindFirstFileA(originalFilename, out lpFindFileData);
+                    IntPtr retVal = Kernel32.FindFirstFileW(originalFilename, out lpFindFileData);
                     int error = Marshal.GetLastWin32Error();
                     TrySendMessage(callID, new
                     {
-                        function = "FindFirstFileA",
+                        function = "FindFirstFileW",
                         module = "kernel32",
                         paramaters = new { filename = originalFilename },
                         @return = retVal,
@@ -1035,12 +1042,12 @@ namespace DarkHook
                     }
                 }
             }
-            lpFindFileData = new Kernel32.WIN32_FIND_DATAA();
+            lpFindFileData = new Kernel32.WIN32_FIND_DATAW();
             Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
             return Kernel32.INVALID_HANDLE_VALUE;
         }
 
-        bool FindNextFile_Hook(IntPtr hFindFile, out Kernel32.WIN32_FIND_DATAA lpFindFileData)
+        bool FindNextFileW_Hook(IntPtr hFindFile, out Kernel32.WIN32_FIND_DATAW lpFindFileData)
         {
             Guid callID = Guid.NewGuid();
 
@@ -1056,11 +1063,15 @@ namespace DarkHook
                         Kernel32.SetLastError(error);
                         TrySendMessage(callID, new
                         {
-                            function = "FindNextFileA",
+                            function = "FindNextFileW",
                             module = "kernel32",
                             paramaters = new { hFindFile = hFindFile },
                             @return = success,
-                            notes = new { success = success, error = error, dirType = PathType.Override },
+                            notes = new {
+                                success = success,
+                                error = error,
+                                dirType = PathType.Override,
+                            },
                             @out = new { lpFindFileData = lpFindFileData },
                         });
                         return success;
@@ -1068,13 +1079,13 @@ namespace DarkHook
                 }
                 TrySendMessage(callID, new
                 {
-                    function = "FindNextFileA",
+                    function = "FindNextFileW",
                     module = "kernel32",
                     paramaters = new { hFindFile = hFindFile },
                     @return = VolSet,
                     notes = new { dirType = PathType.Pass },
                 });
-                return Kernel32.FindNextFileA(hFindFile, out lpFindFileData);
+                return Kernel32.FindNextFileW(hFindFile, out lpFindFileData);
             }
             catch (Exception ex) 
             {
@@ -1088,7 +1099,7 @@ namespace DarkHook
                     }
                 }
             }
-            lpFindFileData = new Kernel32.WIN32_FIND_DATAA();
+            lpFindFileData = new Kernel32.WIN32_FIND_DATAW();
             Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
             return false;
         }
@@ -1144,7 +1155,10 @@ namespace DarkHook
 
 
 
-        
+
+
+
+
 
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
@@ -1251,7 +1265,7 @@ namespace DarkHook
         {
             public int FileIndex { get; set; }
 
-            public List<Tuple<string, Kernel32.WIN32_FIND_DATAA>> FileMap { get; set; }
+            public List<Tuple<string, Kernel32.WIN32_FIND_DATAW>> FileMap { get; set; }
         }
     }
 }

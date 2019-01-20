@@ -34,14 +34,14 @@ namespace DarkHook
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         public static extern uint GetPrivateProfileStringA(string lpAppName, string lpKeyName, string lpDefault, IntPtr lpReturnedString, uint nSize, string lpFileName);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-        public static extern IntPtr FindFirstFileA(string lpFileName, out WIN32_FIND_DATAA lpFindFileData);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr FindFirstFileW(string lpFileName, out WIN32_FIND_DATAW lpFindFileData);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-        public static extern bool FindNextFileA(IntPtr hFindFile, out WIN32_FIND_DATAA lpFindFileData);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool FindNextFileW(IntPtr hFindFile, out WIN32_FIND_DATAW lpFindFileData);
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct WIN32_FIND_DATAA
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct WIN32_FIND_DATAW
         {
             public int dwFileAttributes;
             public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;
@@ -59,7 +59,6 @@ namespace DarkHook
             public int dwCreatorType;
             public Int16 wFinderFlags;*/
         }
-
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool FindClose(IntPtr hFindFile);
