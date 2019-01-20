@@ -35,13 +35,40 @@ namespace DarkHook
         public static extern uint GetPrivateProfileStringA(string lpAppName, string lpKeyName, string lpDefault, IntPtr lpReturnedString, uint nSize, string lpFileName);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern IntPtr FindFirstFileW(string lpFileName, out WIN32_FIND_DATAW lpFindFileData);
+        //public static extern IntPtr FindFirstFileEx(string lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, out WIN32_FIND_DATAW lpFindFileData, FINDEX_SEARCH_OPS fSearchOp, IntPtr lpSearchFilter, int dwAdditionalFlags);
+        public static extern IntPtr FindFirstFileExW(string lpFileName, IntPtr fInfoLevelId, out WIN32_FIND_DATAW lpFindFileData, IntPtr fSearchOp, IntPtr lpSearchFilter, int dwAdditionalFlags);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool FindNextFileW(IntPtr hFindFile, out WIN32_FIND_DATAW lpFindFileData);
 
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern IntPtr FindFirstFileA(string lpFileName, out WIN32_FIND_DATAW lpFindFileData);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern bool FindNextFileA(IntPtr hFindFile, out WIN32_FIND_DATAW lpFindFileData);
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct WIN32_FIND_DATAW
+        {
+            public int dwFileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastWriteTime;
+            public int nFileSizeHigh;
+            public int nFileSizeLow;
+            public int dwReserved0;
+            public int dwReserved1;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string cFileName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)]
+            public string cAlternateFileName;
+            /*public int dwFileType;
+            public int dwCreatorType;
+            public Int16 wFinderFlags;*/
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        public struct WIN32_FIND_DATAA
         {
             public int dwFileAttributes;
             public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;

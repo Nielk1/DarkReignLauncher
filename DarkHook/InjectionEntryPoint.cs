@@ -72,6 +72,22 @@ namespace DarkHook
             _server.Ping();
         }
 
+        private string CreateFileW_Lib;
+        private string FindFirstFileExW_Lib;
+        private string FindNextFileW_Lib;
+        private string FindClose_Lib;
+        private IntPtr GetProcAddress(out string libUsed, string lib1, string func1, string lib2, string func2)
+        {
+            IntPtr func = EasyHook.LocalHook.GetProcAddress(lib1, func1);
+            libUsed = lib1;
+            if (func == IntPtr.Zero)
+            {
+                func = EasyHook.LocalHook.GetProcAddress(lib2, func2);
+                libUsed = lib2;
+            }
+            return func;
+        }
+
         /// <summary>
         /// The main entry point for our logic once injected within the target process. 
         /// This is where the hooks will be created, and a loop will be entered until host process exits.
@@ -88,12 +104,12 @@ namespace DarkHook
 
             // Install hooks
             // CreateFile https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx
-            var createFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "CreateFileW"), new CreateFile_Delegate(CreateFile_Hook), this);
+            var createFileHook = EasyHook.LocalHook.Create(GetProcAddress(out CreateFileW_Lib, "kernelbase.dll", "CreateFileW", "kernelbase.dll", "CreateFileW"), new CreateFile_Delegate(CreateFile_Hook), this);
             ////var deleteFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "DeleteFileW"), new DeleteFile_Delegate(DeleteFile_Hook), this);
             var getPrivateProfileStringHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "GetPrivateProfileStringA"), new GetPrivateProfileString_Delegate(GetPrivateProfileString_Hook), this);
-            var findFirstFileHookW = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindFirstFileW"), new FindFirstFileW_Delegate(FindFirstFileW_Hook), this);
-            var findNextFileHookW = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindNextFileW"), new FindNextFileW_Delegate(FindNextFileW_Hook), this);
-            var findCloseHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "FindClose"), new FindClose_Delegate(FindClose_Hook), this);
+            var findFirstFileExHook = EasyHook.LocalHook.Create(GetProcAddress(out FindFirstFileExW_Lib, "kernelbase.dll", "FindFirstFileExW", "kernelbase.dll", "FindFirstFileExW"), new FindFirstFileExW_Delegate(FindFirstFileExW_Hook), this);
+            var findNextFileWHook = EasyHook.LocalHook.Create(GetProcAddress(out FindNextFileW_Lib, "kernelbase.dll", "FindNextFileW", "kernel32.dll", "FindNextFileW"), new FindNextFileW_Delegate(FindNextFileW_Hook), this);
+            var findCloseHook = EasyHook.LocalHook.Create(GetProcAddress(out FindClose_Lib, "kernelbase.dll", "FindClose", "kernel32.dll", "FindClose"), new FindClose_Delegate(FindClose_Hook), this);
             var _accessHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("msvcrt.dll", "_access"), new _access_Delegate(_access_Hook), this); 
             var AIL_redbook_volumeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_volume@4"), new AIL_redbook_volume_Delegate(AIL_redbook_volume_Hook), this);
             var AIL_redbook_set_volumeeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_set_volume@8"), new AIL_redbook_set_volume_Delegate(AIL_redbook_set_volume_Hook), this);
@@ -102,22 +118,22 @@ namespace DarkHook
             createFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             ////deleteFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             getPrivateProfileStringHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
-            findFirstFileHookW.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
-            findNextFileHookW.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+            findFirstFileExHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+            findNextFileWHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             findCloseHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             _accessHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             AIL_redbook_volumeHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             AIL_redbook_set_volumeeHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
 
-            _server.ReportMessage(context.HostPID, @"Function hooks installed:
-kernel32.dll :: CreateFileW
-kernel32.dll :: GetPrivateProfileStringA  - Overriding packman reads
-kernel32.dll :: FindFirstFileW            - File redirection, access virtual file pool
-kernel32.dll :: FindNextFileW             - File redirection, access virtual file pool
-kernel32.dll :: FindClose                 - File redirection, access virtual file pool
-msvcrt.dll   :: _access                   - File redirection, confirming file is readable
-mss32.dll    :: _AIL_redbook_volume@4     - Redirect music get volume request
-mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
+            _server.ReportMessage(context.HostPID, $@"Function hooks installed:
+{CreateFileW_Lib} :: CreateFileW - File redirection
+kernel32.dll :: GetPrivateProfileStringA - Overriding packman reads
+{FindFirstFileExW_Lib} :: FindFirstFileExW - File redirection, access virtual file pool
+{FindNextFileW_Lib} :: FindNextFileW - File redirection, access virtual file pool
+{FindClose_Lib} :: FindClose - File redirection, access virtual file pool
+msvcrt.dll :: _access - File redirection, confirming file is readable
+mss32.dll :: _AIL_redbook_volume@4 - Redirect music get volume request
+mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
             // Wake up the process (required if using RemoteHooking.CreateAndInject)
             EasyHook.RemoteHooking.WakeUpProcess();
@@ -157,8 +173,8 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             createFileHook.Dispose();
             ////deleteFileHook.Dispose();
             getPrivateProfileStringHook.Dispose();
-            findFirstFileHookW.Dispose();
-            findNextFileHookW.Dispose();
+            findFirstFileExHook.Dispose();
+            findNextFileWHook.Dispose();
             findCloseHook.Dispose();
             _accessHook.Dispose();
             AIL_redbook_volumeHook.Dispose();
@@ -407,7 +423,7 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
         delegate IntPtr CreateFile_Delegate(String filename, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
-        delegate IntPtr FindFirstFileW_Delegate(string lpFileName, out Kernel32.WIN32_FIND_DATAW lpFindFileData);
+        delegate IntPtr FindFirstFileExW_Delegate(string lpFileName, IntPtr fInfoLevelId, out Kernel32.WIN32_FIND_DATAW lpFindFileData, IntPtr fSearchOp, IntPtr lpSearchFilter, int dwAdditionalFlags);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         delegate bool FindNextFileW_Delegate(IntPtr hFindFile, out Kernel32.WIN32_FIND_DATAW lpFindFileData);
@@ -514,26 +530,26 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                 // wierd path like a HID device or just no file at all
                 if (filename == null || filename.StartsWith(@"\\"))
                 {
-                    TrySendMessage(callID, new
+                    /*TrySendMessage(callID, new
                     {
                         function = "GetPrivateProfileStringA",
                         module = "kernel32",
                         paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = filename },
                         notes = new { dirType = PathType.NotFilePass },
-                    });
+                    });*/
                     return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                 }
 
                 // it's not a CFG
                 if (!filename.EndsWith(@".cfg"))
                 {
-                    TrySendMessage(callID, new
+                    /*TrySendMessage(callID, new
                     {
                         function = "GetPrivateProfileStringA",
                         module = "kernel32",
                         paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = filename },
                         notes = new { dirType = PathType.HardPass },
-                    });
+                    });*/
                     uint retVal = Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                     return retVal;
                 }
@@ -547,13 +563,13 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                     // even though it's rooted, it's rooted somewhere other than our game folder
                     if (!filename.StartsWith(BasePath))
                     {
-                        TrySendMessage(callID, new
+                        /*TrySendMessage(callID, new
                         {
                             function = "GetPrivateProfileStringA",
                             module = "kernel32",
                             paramaters = new { lpAppName = lpAppName, lpKeyName = lpKeyName, lpDefault = lpDefault, lpReturnedString = lpReturnedString, nSize = nSize, filename = filename },
                             notes = new { dirType = PathType.Pass },
-                        });
+                        });*/
                         return Kernel32.GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, filename);
                     }
 
@@ -790,7 +806,7 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                 string newPath = $@"mods\{modpath}\" + path.Substring(5);
 
                 Kernel32.WIN32_FIND_DATAW tmp;
-                IntPtr Find = Kernel32.FindFirstFileW(newPath, out tmp);
+                IntPtr Find = Kernel32.FindFirstFileExW(newPath, IntPtr.Zero, out tmp, IntPtr.Zero, IntPtr.Zero, 0);
                 if (Find == Kernel32.INVALID_HANDLE_VALUE)
                 {
                     continue;
@@ -810,7 +826,7 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             }
             {
                 Kernel32.WIN32_FIND_DATAW tmp;
-                IntPtr Find = Kernel32.FindFirstFileW(path, out tmp);
+                IntPtr Find = Kernel32.FindFirstFileExW(path, IntPtr.Zero, out tmp, IntPtr.Zero, IntPtr.Zero, 0);
                 if (Find != Kernel32.INVALID_HANDLE_VALUE)
                 {
                     {
@@ -861,7 +877,7 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             }
         }
 
-        IntPtr FindFirstFileW_Hook(string filename, out Kernel32.WIN32_FIND_DATAW lpFindFileData)
+        IntPtr FindFirstFileExW_Hook(string filename, IntPtr fInfoLevelId, out Kernel32.WIN32_FIND_DATAW lpFindFileData, IntPtr fSearchOp, IntPtr lpSearchFilter, int dwAdditionalFlags)
         {
             Guid callID = Guid.NewGuid();
 
@@ -870,16 +886,16 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                 // wierd path like a HID device
                 if (filename.StartsWith(@"\\"))
                 {
-                    IntPtr retVal = Kernel32.FindFirstFileW(filename, out lpFindFileData);
-                    TrySendMessage(callID, new
+                    IntPtr retVal = Kernel32.FindFirstFileExW(filename, fInfoLevelId, out lpFindFileData, fSearchOp, lpSearchFilter, dwAdditionalFlags);
+                    /*TrySendMessage(callID, new
                     {
-                        function = "FindFirstFileW",
-                        module = "kernel32",
+                        function = "FindFirstFileExW",
+                        module = FindFirstFileExW_Lib,
                         paramaters = new { filename = filename },
                         @return = retVal,
                         notes = new { dirType = PathType.Pass },
                         @out = new { lpFindFileData = lpFindFileData },
-                    });
+                    });*/
                     return retVal;
                 }
 
@@ -892,16 +908,16 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                     // even though it's rooted, it's rooted somewhere other than our game folder
                     if (!filename.StartsWith(BasePath))
                     {
-                        IntPtr retVal = Kernel32.FindFirstFileW(filename, out lpFindFileData);
-                        TrySendMessage(callID, new
+                        IntPtr retVal = Kernel32.FindFirstFileExW(filename, fInfoLevelId, out lpFindFileData, fSearchOp, lpSearchFilter, dwAdditionalFlags);
+                        /*TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileW",
-                            module = "kernel32",
+                            function = "FindFirstFileExW",
+                            module = FindFirstFileExW_Lib,
                             paramaters = new { filename = filename },
                             @return = retVal,
                             notes = new { dirType = PathType.Pass },
                             @out = new { lpFindFileData = lpFindFileData },
-                        });
+                        });*/
                         return retVal;
                     }
 
@@ -928,11 +944,11 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                         string SaveDir = Path.GetDirectoryName(filename);
                         if (!Directory.Exists(SaveDir))
                             Directory.CreateDirectory(SaveDir);
-                        IntPtr retVal = Kernel32.FindFirstFileW(filename, out lpFindFileData);
+                        IntPtr retVal = Kernel32.FindFirstFileExW(filename, fInfoLevelId, out lpFindFileData, fSearchOp, lpSearchFilter, dwAdditionalFlags);
                         TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileW",
-                            module = "kernel32",
+                            function = "FindFirstFileExW",
+                            module = FindFirstFileExW_Lib,
                             paramaters = new { filename = originalFilename },
                             @return = retVal,
                             notes = new { filename = filename, dirType = PathType.Redirect },
@@ -941,11 +957,11 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                         return retVal;
                     }
                     {
-                        IntPtr retVal = Kernel32.FindFirstFileW(originalFilename, out lpFindFileData);
+                        IntPtr retVal = Kernel32.FindFirstFileExW(originalFilename, fInfoLevelId, out lpFindFileData, fSearchOp, lpSearchFilter, dwAdditionalFlags);
                         TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileW",
-                            module = "kernel32",
+                            function = "FindFirstFileExW",
+                            module = FindFirstFileExW_Lib,
                             paramaters = new { filename = originalFilename },
                             @return = retVal,
                             notes = new { dirType = PathType.Pass },
@@ -977,8 +993,8 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                                 retValX.Free();
                                 TrySendMessage(callID, new
                                 {
-                                    function = "FindFirstFileW",
-                                    module = "kernel32",
+                                    function = "FindFirstFileExW",
+                                    module = FindFirstFileExW_Lib,
                                     paramaters = new { filename = originalFilename },
                                     @return = Kernel32.INVALID_HANDLE_VALUE,
                                     notes = new { success = success, error = error, dirType = PathType.Override },
@@ -989,8 +1005,8 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
                             TrySendMessage(callID, new
                             {
-                                function = "FindFirstFileW",
-                                module = "kernel32",
+                                function = "FindFirstFileExW",
+                                module = FindFirstFileExW_Lib,
                                 paramaters = new { filename = originalFilename },
                                 @return = (IntPtr)retValX,
                                 notes = new { success = success, error = error, dirType = PathType.Override },
@@ -1001,12 +1017,12 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                     }
                     {
                         // we have no mods, use a normal scan
-                        IntPtr retVal = Kernel32.FindFirstFileW(originalFilename, out lpFindFileData);
+                        IntPtr retVal = Kernel32.FindFirstFileExW(originalFilename, fInfoLevelId, out lpFindFileData, fSearchOp, lpSearchFilter, dwAdditionalFlags);
                         int error = Marshal.GetLastWin32Error();
                         TrySendMessage(callID, new
                         {
-                            function = "FindFirstFileW",
-                            module = "kernel32",
+                            function = "FindFirstFileExW",
+                            module = FindFirstFileExW_Lib,
                             paramaters = new { filename = originalFilename },
                             @return = retVal,
                             notes = new { error = error, dirType = PathType.Pass },
@@ -1016,12 +1032,12 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                     }
                 }
                 {
-                    IntPtr retVal = Kernel32.FindFirstFileW(originalFilename, out lpFindFileData);
+                    IntPtr retVal = Kernel32.FindFirstFileExW(originalFilename,  fInfoLevelId, out lpFindFileData, fSearchOp, lpSearchFilter, dwAdditionalFlags);
                     int error = Marshal.GetLastWin32Error();
                     TrySendMessage(callID, new
                     {
-                        function = "FindFirstFileW",
-                        module = "kernel32",
+                        function = "FindFirstFileExW",
+                        module = FindFirstFileExW_Lib,
                         paramaters = new { filename = originalFilename },
                         @return = retVal,
                         notes = new { error = error, dirType = PathType.Pass },
@@ -1064,7 +1080,7 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                         TrySendMessage(callID, new
                         {
                             function = "FindNextFileW",
-                            module = "kernel32",
+                            module = FindNextFileW_Lib,
                             paramaters = new { hFindFile = hFindFile },
                             @return = success,
                             notes = new {
@@ -1077,14 +1093,14 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                         return success;
                     }
                 }
-                TrySendMessage(callID, new
+                /*TrySendMessage(callID, new
                 {
                     function = "FindNextFileW",
-                    module = "kernel32",
+                    module = FindNextFileW_Lib,
                     paramaters = new { hFindFile = hFindFile },
                     @return = VolSet,
                     notes = new { dirType = PathType.Pass },
-                });
+                });*/
                 return Kernel32.FindNextFileW(hFindFile, out lpFindFileData);
             }
             catch (Exception ex) 
@@ -1119,7 +1135,7 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                         TrySendMessage(callID, new
                         {
                             function = "FindClose",
-                            module = "kernel32",
+                            module = FindClose_Lib,
                             paramaters = new { hFindFile = hFindFile },
                             @return = VolSet,
                             notes = new { dirType = PathType.Override },
@@ -1127,13 +1143,13 @@ mss32.dll    :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                         return true;
                     }
                 }
-                TrySendMessage(callID, new
+                /*TrySendMessage(callID, new
                 {
                     function = "FindClose",
-                    module = "kernel32",
+                    module = FindClose_Lib,
                     paramaters = new { hFindFile = hFindFile },
                     notes = new { dirType = PathType.Pass },
-                });
+                });*/
                 return Kernel32.FindClose(hFindFile);
             }
             catch (Exception ex)
