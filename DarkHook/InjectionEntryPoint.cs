@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DarkHook
 {
@@ -25,6 +26,7 @@ namespace DarkHook
         /// Message queue of all files accessed
         /// </summary>
         Queue<string> _messageQueue = new Queue<string>();
+        Queue<string> _screenshotQueue = new Queue<string>();
 
         string BasePath;
         List<string> ModPaths;
@@ -32,6 +34,7 @@ namespace DarkHook
 
         Dictionary<string, string> PathRedirectCache;
         Dictionary<IntPtr, FindFileMeta> FindFileOverides;
+        Dictionary<IntPtr, string> ScreenshotFiles;
 
         FileStream volSave;
         byte VolSet = 127;
@@ -51,6 +54,7 @@ namespace DarkHook
         {
             PathRedirectCache = new Dictionary<string, string>();
             FindFileOverides = new Dictionary<IntPtr, FindFileMeta>();
+            ScreenshotFiles = new Dictionary<IntPtr, string>();
 
             BasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\";
             this.ModPaths = ModPaths;
@@ -73,19 +77,21 @@ namespace DarkHook
         }
 
         private string CreateFileW_Lib;
+        private string CloseHandle_Lib;
         private string FindFirstFileExW_Lib;
         private string FindNextFileW_Lib;
         private string FindClose_Lib;
-        private IntPtr GetProcAddress(out string libUsed, string lib1, string func1, string lib2, string func2)
+        private IntPtr GetProcAddress(out string libUsed, string funcion, params string[] libs)
         {
-            IntPtr func = EasyHook.LocalHook.GetProcAddress(lib1, func1);
-            libUsed = lib1;
-            if (func == IntPtr.Zero)
+            foreach (string lib in libs)
             {
-                func = EasyHook.LocalHook.GetProcAddress(lib2, func2);
-                libUsed = lib2;
+                IntPtr func = EasyHook.LocalHook.GetProcAddress(lib, funcion);
+                libUsed = lib;
+                if (func != IntPtr.Zero)
+                    return func;
             }
-            return func;
+            libUsed = null;
+            return IntPtr.Zero;
         }
 
         /// <summary>
@@ -97,6 +103,8 @@ namespace DarkHook
         /// <param name="channelName">The name of the IPC channel</param>
         public void Run(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, string SaveFolder)
         {
+            //System.Threading.Thread.Sleep(1000 * 20); // time to attach debugger
+
             // Injection is now complete and the server interface is connected
             _server.IsInstalled(EasyHook.RemoteHooking.GetCurrentProcessId());
 
@@ -104,18 +112,20 @@ namespace DarkHook
 
             // Install hooks
             // CreateFile https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx
-            var createFileHook = EasyHook.LocalHook.Create(GetProcAddress(out CreateFileW_Lib, "kernelbase.dll", "CreateFileW", "kernelbase.dll", "CreateFileW"), new CreateFile_Delegate(CreateFile_Hook), this);
-            ////var deleteFileHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "DeleteFileW"), new DeleteFile_Delegate(DeleteFile_Hook), this);
+            var createFileHook = EasyHook.LocalHook.Create(GetProcAddress(out CreateFileW_Lib, "CreateFileW", "kernelbase.dll", "kernel32.dll"), new CreateFile_Delegate(CreateFile_Hook), this);
+            var closeHandleHook = EasyHook.LocalHook.Create(GetProcAddress(out CloseHandle_Lib, "CloseHandle", "kernelbase.dll", "kernel32.dll"), new CloseHandle_Delegate(CloseHandle_Hook), this);
+            ////var deleteFileHook = EasyHook.LocalHook.Create(GetProcAddress(out CreateFileW_Lib, "kernelbase.dll", "DeleteFileW", "kernel32.dll", "DeleteFileW"), new DeleteFile_Delegate(DeleteFile_Hook), this);
             var getPrivateProfileStringHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("kernel32.dll", "GetPrivateProfileStringA"), new GetPrivateProfileString_Delegate(GetPrivateProfileString_Hook), this);
-            var findFirstFileExHook = EasyHook.LocalHook.Create(GetProcAddress(out FindFirstFileExW_Lib, "kernelbase.dll", "FindFirstFileExW", "kernelbase.dll", "FindFirstFileExW"), new FindFirstFileExW_Delegate(FindFirstFileExW_Hook), this);
-            var findNextFileWHook = EasyHook.LocalHook.Create(GetProcAddress(out FindNextFileW_Lib, "kernelbase.dll", "FindNextFileW", "kernel32.dll", "FindNextFileW"), new FindNextFileW_Delegate(FindNextFileW_Hook), this);
-            var findCloseHook = EasyHook.LocalHook.Create(GetProcAddress(out FindClose_Lib, "kernelbase.dll", "FindClose", "kernel32.dll", "FindClose"), new FindClose_Delegate(FindClose_Hook), this);
-            var _accessHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("msvcrt.dll", "_access"), new _access_Delegate(_access_Hook), this); 
+            var findFirstFileExHook = EasyHook.LocalHook.Create(GetProcAddress(out FindFirstFileExW_Lib, "FindFirstFileExW", "kernelbase.dll", "kernel32.dll"), new FindFirstFileExW_Delegate(FindFirstFileExW_Hook), this);
+            var findNextFileWHook = EasyHook.LocalHook.Create(GetProcAddress(out FindNextFileW_Lib, "FindNextFileW", "kernelbase.dll", "kernel32.dll"), new FindNextFileW_Delegate(FindNextFileW_Hook), this);
+            var findCloseHook = EasyHook.LocalHook.Create(GetProcAddress(out FindClose_Lib, "FindClose", "kernelbase.dll", "kernel32.dll"), new FindClose_Delegate(FindClose_Hook), this);
+            var _accessHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("msvcrt.dll", "_access"), new _access_Delegate(_access_Hook), this);
             var AIL_redbook_volumeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_volume@4"), new AIL_redbook_volume_Delegate(AIL_redbook_volume_Hook), this);
             var AIL_redbook_set_volumeeHook = EasyHook.LocalHook.Create(EasyHook.LocalHook.GetProcAddress("mss32.dll", "_AIL_redbook_set_volume@8"), new AIL_redbook_set_volume_Delegate(AIL_redbook_set_volume_Hook), this);
 
             // Activate hooks on all threads except the current thread
             createFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+            closeHandleHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             ////deleteFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             getPrivateProfileStringHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
             findFirstFileExHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
@@ -127,6 +137,7 @@ namespace DarkHook
 
             _server.ReportMessage(context.HostPID, $@"Function hooks installed:
 {CreateFileW_Lib} :: CreateFileW - File redirection
+{CloseHandle_Lib} :: CloseHandle - File redirection
 kernel32.dll :: GetPrivateProfileStringA - Overriding packman reads
 {FindFirstFileExW_Lib} :: FindFirstFileExW - File redirection, access virtual file pool
 {FindNextFileW_Lib} :: FindNextFileW - File redirection, access virtual file pool
@@ -145,32 +156,61 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                 {
                     System.Threading.Thread.Sleep(500);
 
-                    string[] queued = null;
-
-                    lock (_messageQueue)
                     {
-                        queued = _messageQueue.ToArray();
-                        _messageQueue.Clear();
+                        string[] queued = null;
+
+                        lock (_messageQueue)
+                        {
+                            queued = _messageQueue.ToArray();
+                            _messageQueue.Clear();
+                        }
+
+                        // Send newly monitored file accesses to FileMonitor
+                        if (queued != null && queued.Length > 0)
+                        {
+                            _server.ReportMessages(context.HostPID, queued);
+                            continue;
+                        }
                     }
 
-                    // Send newly monitored file accesses to FileMonitor
-                    if (queued != null && queued.Length > 0)
                     {
-                        _server.ReportMessages(context.HostPID, queued);
+                        string[] queued = null;
+
+                        lock (_screenshotQueue)
+                        {
+                            queued = _screenshotQueue.ToArray();
+                            _screenshotQueue.Clear();
+                        }
+
+                        // Send newly monitored file accesses to FileMonitor
+                        if (queued != null && queued.Length > 0)
+                        {
+                            _server.ReportScreenshots(context.HostPID, queued);
+                            continue;
+                        }
                     }
-                    else
+
                     {
                         _server.Ping();
                     }
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 // Ping() or ReportMessages() will raise an exception if host is unreachable
+                try
+                {
+                    lock (DarkHookLog)
+                    {
+                        File.AppendAllText("darkhook.log", $"{ex.ToString()}\r\n");
+                    }
+                }
+                catch { }
             }
 
             // Remove hooks
             createFileHook.Dispose();
+            closeHandleHook.Dispose();
             ////deleteFileHook.Dispose();
             getPrivateProfileStringHook.Dispose();
             findFirstFileExHook.Dispose();
@@ -201,7 +241,10 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             SoftPass,
             Override, // we overrode the normal logic to do crazy stuff
             Composite, // this is a composite notice
+            Screenshot, // this is a screenshot file
         }
+
+        Regex ScreenshotFilename = new Regex(@"tact[0-9]{4}\.pcx");
 
         /// <summary>
         /// Get the first valid path diving our possible files
@@ -266,6 +309,12 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                 case "newtonsoft.json.dll":
                     type = PathType.Internal;
                     return originalFilename;
+            }
+
+            if (ScreenshotFilename.IsMatch(filename))
+            {
+                type = PathType.Screenshot;
+                return originalFilename;
             }
 
             // it's a save data request
@@ -422,6 +471,9 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         delegate IntPtr CreateFile_Delegate(String filename, UInt32 desiredAccess, UInt32 shareMode, IntPtr securityAttributes, UInt32 creationDisposition, UInt32 flagsAndAttributes, IntPtr templateFile);
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+        delegate bool CloseHandle_Delegate(IntPtr hObject);
+
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         delegate IntPtr FindFirstFileExW_Delegate(string lpFileName, IntPtr fInfoLevelId, out Kernel32.WIN32_FIND_DATAW lpFindFileData, IntPtr fSearchOp, IntPtr lpSearchFilter, int dwAdditionalFlags);
 
@@ -492,13 +544,31 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             {
                 PathType dirType;
                 string redirectedFilename = GetFirstValidPath(filename.ToLowerInvariant(), out dirType);
+                if(dirType == PathType.Screenshot)
+                {
+                    TrySendMessage(callID, new
+                    {
+                        function = "CreateFileW",
+                        module = CreateFileW_Lib,
+                        paramaters = new { filename = filename, desiredAccess = desiredAccess, shareMode = shareMode, securityAttributes = securityAttributes, creationDisposition = creationDisposition, flagsAndAttributes = flagsAndAttributes, templateFile = templateFile },
+                        notes = new { dirType = dirType },
+                        @out = new { filename = redirectedFilename },
+                    });
+                    IntPtr screenshotHandle = Kernel32.CreateFileW(redirectedFilename, desiredAccess, shareMode, securityAttributes, creationDisposition, flagsAndAttributes, templateFile);
+                    lock(ScreenshotFiles)
+                    {
+                        ScreenshotFiles[screenshotHandle] = redirectedFilename;
+                    }
+                    return screenshotHandle;
+                }
+                else
                 //if(dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
                 //if (dirType != PathType.Internal) // we end up trapped on some OSs if we try to log the creation of our log
                 if (dirType != PathType.Internal && dirType != PathType.NotFilePass && dirType != PathType.HardPass) // we end up trapped on some OSs if we try to log the creation of our log
                     TrySendMessage(callID, new
                     {
                         function = "CreateFileW",
-                        module = "kernel32",
+                        module = CreateFileW_Lib,
                         paramaters = new { filename = filename, desiredAccess = desiredAccess, shareMode = shareMode, securityAttributes = securityAttributes, creationDisposition = creationDisposition, flagsAndAttributes = flagsAndAttributes, templateFile = templateFile },
                         notes = new { dirType = dirType },
                         @out = new { filename = redirectedFilename },
@@ -519,6 +589,32 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             }
             Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
             return Kernel32.INVALID_HANDLE_VALUE;
+        }
+
+        bool CloseHandle_Hook(IntPtr hObject)
+        {
+            lock (ScreenshotFiles)
+            {
+                if (ScreenshotFiles.ContainsKey(hObject))
+                {
+                    string filename = ScreenshotFiles[hObject];
+                    TryNotifyScreenshot(filename);
+                    ScreenshotFiles.Remove(hObject);
+
+                    bool retVal = Kernel32.CloseHandle(hObject);
+                    Guid callID = Guid.NewGuid();
+                    TrySendMessage(callID, new
+                    {
+                        function = "CloseHandle",
+                        module = CloseHandle_Lib,
+                        paramaters = new { hObject = hObject },
+                        notes = new { filename = filename },
+                        @return = retVal,
+                    });
+                    return retVal;
+                }
+            }
+            return Kernel32.CloseHandle(hObject);
         }
 
         uint GetPrivateProfileString_Hook(string lpAppName, string lpKeyName, string lpDefault, IntPtr lpReturnedString, uint nSize, string filename)
@@ -1245,7 +1341,16 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
         }
 
 
-
+        private void TryNotifyScreenshot(string filename)
+        {
+            lock (this._screenshotQueue)
+            {
+                if (this._screenshotQueue.Count < 1000)
+                {
+                    this._screenshotQueue.Enqueue(filename);
+                }
+            }
+        }
 
         private void TrySendMessage(Guid id, dynamic obj)
         {
@@ -1255,13 +1360,13 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             {
                 message = id.ToString() + "\t" + JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.None);
 
-                lock (this._messageQueue)
+                /*lock (this._messageQueue)
                 {
                     if (this._messageQueue.Count < 1000)
                     {
                         this._messageQueue.Enqueue(message);
                     }
-                }
+                }*/
             }
             catch
             {

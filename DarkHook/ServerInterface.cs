@@ -11,9 +11,12 @@ namespace DarkHook
     /// </summary>
     public class ServerInterface : MarshalByRefObject
     {
+        DarkReignInterface intf;
+
         public void IsInstalled(int clientPID)
         {
             Console.WriteLine("DarkReignBootstrap has injected DarkHook into process {0}.\r\n", clientPID);
+            intf  = new DarkReignInterface(clientPID);
         }
 
         /// <summary>
@@ -26,6 +29,24 @@ namespace DarkHook
             for (int i = 0; i < messages.Length; i++)
             {
                 Console.WriteLine(messages[i]);
+            }
+        }
+
+        public void ReportScreenshots(int clientPID, string[] screenshots)
+        {
+            string scenariondir = intf.ScenarioDir;
+            scenariondir = scenariondir.Replace(@"\", "_").TrimStart('.').Trim('_');
+
+            int index = 0;
+            for (int i = 0; i < screenshots.Length; i++)
+            {
+                string filename = null;
+                do
+                {
+                    filename = $"{scenariondir}_{DateTime.Now.ToString("yyyy-MM-dd-HH_mm_ss")}_{index}.pcx";
+                    index++;
+                } while (System.IO.File.Exists(filename));
+                System.IO.File.Move(screenshots[i], filename);
             }
         }
 

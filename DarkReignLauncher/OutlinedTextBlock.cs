@@ -234,8 +234,8 @@ namespace DarkReignLauncher
                 this.FlowDirection,
                 new Typeface(this.FontFamily, this.FontStyle, this.FontWeight, FontStretches.Normal),
                 this.FontSize,
-                Brushes.Black,
-                1.0d);
+                Brushes.Black);//,
+                //1.0d);
 
             this.UpdateFormattedText();
         }

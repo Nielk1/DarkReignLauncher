@@ -224,11 +224,6 @@ namespace DarkReignBootstrap
                              .ToArray();
         }
 
-        private bool WriteMemory(IntPtr pid, IntPtr lpBaseAddress, byte[] value)
-        {
-            return Kernel32.WriteProcessMemory(pid, lpBaseAddress, value, Marshal.SizeOf<byte>() * value.Length, out var bytesread);
-        }
-
         public void DoAsmInjections(Process proc)
         {
             proc.Suspend();
@@ -238,7 +233,7 @@ namespace DarkReignBootstrap
 
                 foreach (Tuple<IntPtr, byte[]> asm in AsmInjections)
                 {
-                    WriteMemory(ret, asm.Item1, asm.Item2);
+                    Memory.WriteMemory(ret, asm.Item1, asm.Item2);
                 }
             }
             proc.Resume();
