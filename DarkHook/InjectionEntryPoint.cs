@@ -782,7 +782,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                                     //SingleStringReturn = new string(buff, 0, (int)buffSize);
                                     SingleStringReturn = enc.GetString(buff, 0, (int)buffSize);
                                 }
-                                break;
+                                //break;
                             }
                         }
 
