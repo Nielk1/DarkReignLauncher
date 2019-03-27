@@ -20,7 +20,7 @@ namespace DarkReignBootstrap
                 string ModFile = null;
                 {
                     string Executable = Environment.GetCommandLineArgs()[0]; // Command invocation part
-                    string RawCommandLine = Environment.CommandLine;          // Complete command
+                    string RawCommandLine = Environment.CommandLine;         // Complete command
                     CleanArguments = RawCommandLine.Remove(RawCommandLine.IndexOf(Executable), Executable.Length).TrimStart('"').Substring(1);
                     ModFile = args[0];
                     CleanArguments = CleanArguments.Substring(ModFile.Length).TrimStart();
@@ -32,9 +32,13 @@ namespace DarkReignBootstrap
 
                     Console.WriteLine($"DKREIGN.EXE {CleanArguments}");
 
-                    /*ProcessStartInfo info = new ProcessStartInfo()
+                    /// Start method that doesn't cause wierd anet errors
+                    ProcessStartInfo info = new ProcessStartInfo()
                     {
-                        FileName = "DKREIGN.EXE",
+                        FileName = @"..\DKREIGN.EXE",
+
+                        // back up into the game's folder from our subfolder
+                        WorkingDirectory = "..",
 
                         // pass the raw argument string after the mod/launch profile name
                         Arguments = CleanArguments,
@@ -48,9 +52,10 @@ namespace DarkReignBootstrap
                     if (DarkReignProcess != null && !DarkReignProcess.HasExited)
                     {
                         Script.DoFunctionHook(DarkReignProcess);
-                    }*/
+                    }
 
-                    Process DarkReignProcess = Script.DoFunctionHook("DKREIGN.EXE", CleanArguments);
+                    // start and do the hook, causes an ANET thread error dialog that's anoying
+                    //Process DarkReignProcess = Script.DoFunctionHook("DKREIGN.EXE", CleanArguments);
 
                     if (DarkReignProcess == null && DarkReignProcess.HasExited)
                     {
@@ -61,7 +66,7 @@ namespace DarkReignBootstrap
                     // Wait 150 MS or till user input is possible.
                     // If the computer is so fast it puts the CD check up before 150 MS, it will stop waiting
                     // If the computer is so slow that it hasn't decompressed the injection will be overwritten by it
-                    DarkReignProcess.WaitForInputIdle(150);
+                    //DarkReignProcess.WaitForInputIdle(150);
 
                     // Write our ASM changes, hopefully after the decompression
                     //Script.DoAsmInjections(DarkReignProcess);
@@ -87,16 +92,19 @@ namespace DarkReignBootstrap
                                 // Are we a dialog box?
                                 if (MessageString == "#32770")
                                 {
-                                    // We see a dialog box, which means our ASM injection was too early
+                                    // We see a dialog box, which means our ASM injection was too early or we disabled early injection
                                     // Apply the injections again
                                     Console.WriteLine("Injecting ASM");
                                     Script.DoAsmInjections(DarkReignProcess);
                                     Console.WriteLine("Injected ASM");
 
-                                    // Send the MessageBoxA the Yes button ID code, this will work reguardless of localization
-#if !DEBUG
-                                    User32.SendMessage(WindowHandle, User32.WM_COMMAND, (User32.BN_CLICKED << 16) | User32.IDYES, IntPtr.Zero);
-#endif
+                                    short shiftKeyStatus = User32.GetKeyState(User32.VirtualKeyStates.VK_LSHIFT);
+                                    if (shiftKeyStatus >= 0)
+                                    {
+                                        // Send the MessageBoxA the Yes button ID code, this will work reguardless of localization
+                                        User32.SendMessage(WindowHandle, User32.WM_COMMAND, (User32.BN_CLICKED << 16) | User32.IDYES, IntPtr.Zero);
+                                    }
+
                                     // Make sure our break out of this loop applies to the parent loop too
                                     BrokeOutOfSubloop = true;
                                     break;

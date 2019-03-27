@@ -32,7 +32,7 @@ namespace DarkReignLauncher
         {
             InitializeComponent();
             List<string> ShaderOption = new List<string>() { string.Empty }
-                .Union(Directory.GetFiles("Shaders", "*.glsl", SearchOption.AllDirectories)).ToList();
+                .Union(Directory.GetFiles(@"..\Shaders", "*.glsl", SearchOption.AllDirectories)).ToList();
             ShaderOption.ForEach(dr =>
             {
                 Ddraw_ddraw_shader.Items.Add(dr);
@@ -51,7 +51,7 @@ namespace DarkReignLauncher
 
         private void ReadIniTactics()
         {
-            IniData config = parser.Parse(File.ReadAllText("TACTICS.CFG"));
+            IniData config = parser.Parse(File.ReadAllText(@"..\TACTICS.CFG"));
 
             Tactics_Logging_ClearLog.IsChecked = config["Logging"]["ClearLog"] == "1";
             Tactics_Logging_LogToFile.IsChecked = config["Logging"]["LogToFile"] == "1";
@@ -77,7 +77,7 @@ namespace DarkReignLauncher
         {
             if (loading) return;
 
-            IniData config = parser.Parse(File.ReadAllText("TACTICS.CFG"));
+            IniData config = parser.Parse(File.ReadAllText(@"..\TACTICS.CFG"));
 
             config["Logging"]["ClearLog"] = Tactics_Logging_ClearLog.IsChecked ?? false ? "1" : "0";
             config["Logging"]["LogToFile"] = Tactics_Logging_LogToFile.IsChecked ?? false ? "1" : "0";
@@ -98,13 +98,13 @@ namespace DarkReignLauncher
             config["Logging"]["EnableMBJ"] = Tactics_Logging_EnableMBJ.IsChecked ?? false ? "1" : "0";
             config["Logging"]["EnableMDV"] = Tactics_Logging_EnableMDV.IsChecked ?? false ? "1" : "0";
 
-            if (File.Exists("TACTICS.CFG") && !File.Exists("TACTICS.CFG.BAK")) File.Copy("TACTICS.CFG", "TACTICS.CFG.BAK");
-            File.WriteAllText("TACTICS.CFG", config.ToString());
+            if (File.Exists(@"..\TACTICS.CFG") && !File.Exists(@"..\TACTICS.CFG.BAK")) File.Copy(@"..\TACTICS.CFG", @"..\TACTICS.CFG.BAK");
+            File.WriteAllText(@"..\TACTICS.CFG", config.ToString());
         }
 
         private void ReadIniDdraw()
         {
-            IniData config = parser.Parse(File.ReadAllText("ddraw.ini"));
+            IniData config = parser.Parse(File.ReadAllText(@"..\ddraw.ini"));
 
             //Ddraw_ddraw_curres.IsChecked = config["ddraw"]["width"] == "true";
             //Ddraw_ddraw_curres.IsChecked = config["ddraw"]["height"] == "true";
@@ -122,7 +122,7 @@ namespace DarkReignLauncher
         {
             if (loading) return;
 
-            IniData config = parser.Parse(File.ReadAllText("ddraw.ini"));
+            IniData config = parser.Parse(File.ReadAllText(@"..\ddraw.ini"));
 
             //config["ddraw"]["width"] = Ddraw_ddraw_curres.IsChecked.HasValue ? Ddraw_ddraw_curres.IsChecked.Value ? System.Windows.SystemParameters.WorkArea.Width.ToString() : "0" : string.Empty;
             //config["ddraw"]["height"] = Ddraw_ddraw_curres.IsChecked.HasValue ? Ddraw_ddraw_curres.IsChecked.Value ? System.Windows.SystemParameters.WorkArea.Height.ToString() : "0" : string.Empty;
@@ -135,8 +135,8 @@ namespace DarkReignLauncher
             config["ddraw"]["renderer"] = (string)Ddraw_ddraw_renderer.SelectedValue;
             config["ddraw"]["shader"] = (string)Ddraw_ddraw_shader.SelectedValue;
 
-            if (File.Exists("ddraw.ini") && !File.Exists("ddraw.ini.bak")) File.Copy("ddraw.ini", "ddraw.ini.bak");
-            File.WriteAllText("ddraw.ini", config.ToString());
+            if (File.Exists(@"..\ddraw.ini") && !File.Exists(@"..\ddraw.ini.bak")) File.Copy(@"..\ddraw.ini", @"..\ddraw.ini.bak");
+            File.WriteAllText(@"..\ddraw.ini", config.ToString());
         }
 
         private void CheckBoxOpt_Checked(object sender, RoutedEventArgs e)

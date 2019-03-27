@@ -146,6 +146,10 @@ msvcrt.dll :: _access - File redirection, confirming file is readable
 mss32.dll :: _AIL_redbook_volume@4 - Redirect music get volume request
 mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
+
+            _server.ReportMessage(context.HostPID, $"Mod Paths:\r\n{string.Join("\r\n", this.ModPaths)}");
+            _server.ReportMessage(context.HostPID, $"Save Path: {this.SaveFolder}");
+
             // Wake up the process (required if using RemoteHooking.CreateAndInject)
             EasyHook.RemoteHooking.WakeUpProcess();
 

@@ -174,7 +174,7 @@ namespace DarkReignBootstrap
                             try
                             {
                                 string ModFolder = Path.Combine("mods", lineParts[1]);
-                                if (Directory.Exists(ModFolder))
+                                if (Directory.Exists(Path.Combine("..", ModFolder)))
                                 {
                                     ModPaths.Add(lineParts[1]);
                                 }
