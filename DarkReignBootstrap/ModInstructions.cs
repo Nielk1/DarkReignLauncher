@@ -18,6 +18,7 @@ namespace DarkReignBootstrap
         public bool TopMenu { get; set; }
         public List<Tuple<IntPtr, byte[]>> AsmInjections { get; set; }
         public List<string> ModPaths { get; set; }
+        public List<string> BlockDirs { get; set; }
         public string SaveFolder { get; set; }
         public List<ModOption> Options { get; set; }
 
@@ -41,6 +42,7 @@ namespace DarkReignBootstrap
             Title = Path.GetFileNameWithoutExtension(ModFilePath);
             AsmInjections = new List<Tuple<IntPtr, byte[]>>();
             ModPaths = new List<string>();
+            BlockDirs = new List<string>();
             SaveFolder = null;
 
             string[] lines = File.ReadAllLines(ModFilePath);
@@ -182,6 +184,15 @@ namespace DarkReignBootstrap
                             catch { }
                         }
                         break;
+                    /*case "BLOCKDIR":
+                        {
+                            try
+                            {
+                                BlockDirs.Add(lineParts[1].ToLowerInvariant().TrimEnd('\\') + @"\");
+                            }
+                            catch { }
+                        }
+                        break;*/
                 }
             }
         }
@@ -266,6 +277,7 @@ namespace DarkReignBootstrap
                     out procID,
                     channelName,        // the parameters to pass into injected library
                     ModPaths,
+                    BlockDirs,
                     SaveFolder ?? string.Empty
                 );
 
@@ -316,7 +328,8 @@ namespace DarkReignBootstrap
                         injectionLibrary,   // 64-bit library to inject (if target is 64-bit)
                         channelName,        // the parameters to pass into injected library
                         ModPaths,
-                        SaveFolder??string.Empty
+                        BlockDirs,
+                        SaveFolder ??string.Empty
                     );
                 }
             }

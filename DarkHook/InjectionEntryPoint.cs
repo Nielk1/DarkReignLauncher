@@ -30,6 +30,7 @@ namespace DarkHook
 
         string BasePath;
         List<string> ModPaths;
+        List<string> BlockDirs;
         string SaveFolder;
 
         Dictionary<string, string> PathRedirectCache;
@@ -50,7 +51,7 @@ namespace DarkHook
         /// </summary>
         /// <param name="context">The RemoteHooking context</param>
         /// <param name="channelName">The name of the IPC channel</param>
-        public InjectionEntryPoint(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, string SaveFolder)
+        public InjectionEntryPoint(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, List<string> BlockDirs, string SaveFolder)
         {
             PathRedirectCache = new Dictionary<string, string>();
             FindFileOverides = new Dictionary<IntPtr, FindFileMeta>();
@@ -58,6 +59,7 @@ namespace DarkHook
 
             BasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\";
             this.ModPaths = ModPaths;
+            this.BlockDirs = BlockDirs;
             this.SaveFolder = SaveFolder;
 
             VolSet = 127;
@@ -101,7 +103,7 @@ namespace DarkHook
         /// </summary>
         /// <param name="context">The RemoteHooking context</param>
         /// <param name="channelName">The name of the IPC channel</param>
-        public void Run(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, string SaveFolder)
+        public void Run(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, List<string> BlockDirs, string SaveFolder)
         {
             //System.Threading.Thread.Sleep(1000 * 20); // time to attach debugger
 
@@ -264,6 +266,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             Override, // we overrode the normal logic to do crazy stuff
             Composite, // this is a composite notice
             Screenshot, // this is a screenshot file
+            Block, // this is a blocked file
         }
 
         Regex ScreenshotFilename = new Regex(@"tact[0-9]{4}\.pcx");
@@ -1132,6 +1135,23 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                             });
                             return (IntPtr)retValX;
                         }
+                    }
+                    if (BlockDirs.Any(blk => filename.ToLowerInvariant().StartsWith(blk)))
+                    {
+                        lpFindFileData = new Kernel32.WIN32_FIND_DATAW();
+
+                        TrySendMessage(callID, new
+                        {
+                            function = "FindFirstFileExW",
+                            module = FindFirstFileExW_Lib,
+                            paramaters = new { filename = originalFilename },
+                            @return = Kernel32.INVALID_HANDLE_VALUE,
+                            notes = new { error = Kernel32.ERROR_IPSEC_IKE_ERROR, dirType = PathType.Block, blocked = true },
+                            @out = new { lpFindFileData = lpFindFileData },
+                        });
+
+                        Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
+                        return Kernel32.INVALID_HANDLE_VALUE;
                     }
                     {
                         // we have no mods, use a normal scan
