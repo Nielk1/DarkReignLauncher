@@ -32,7 +32,9 @@ namespace DarkReignLauncher
         {
             InitializeComponent();
             List<string> ShaderOption = new List<string>() { string.Empty }
-                .Union(Directory.GetFiles(@"..\Shaders", "*.glsl", SearchOption.AllDirectories)).ToList();
+                .Union(Directory.GetFiles(@"..\Shaders", "*.glsl", SearchOption.AllDirectories))
+                .Select(dr => dr.TrimStart('.', '\\'))
+                .ToList();
             ShaderOption.ForEach(dr =>
             {
                 Ddraw_ddraw_shader.Items.Add(dr);

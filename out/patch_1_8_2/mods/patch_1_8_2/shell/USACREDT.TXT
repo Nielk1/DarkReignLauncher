@@ -1,0 +1,72 @@
+~TDark Reign
+~TActivision
+
+~TCommunity Leads
+~NSatz
+~NMagpie
+~NNielk1
+
+~TDirector
+~NJosh Resnick
+
+~TProducer
+~NGreg Borrud
+
+~TLead Designer
+~NTrey Watkins
+
+~TLead Programmer
+~NDr. Ian Lane Davis
+
+~TArt Director
+~NRodney Walden
+
+~TAssociate Game Designers
+~NRobert Berger
+~NJames Farley
+~NDave Osper
+
+~TCreative Consultant
+~NRon Millar
+
+~TAsset Manager
+~NJoseph Donaldson
+
+~TProduction Coordinator
+~NMatthew Paul
+
+~TWriter
+~NRobert Berger
+
+~TAdditional Writing
+~NJoseph Donaldson
+
+~TProgrammer
+~NBrad Werth
+
+~TShell Programmers
+~NJames Anhalt
+~NJohn Peck
+~NMad Doc
+
+~TAdditional Programming
+~NDan Kegel
+~NJeff Landers
+~NDominic Weber
+
+~T2D Artists
+~NFranz Boehm
+~NChris Guzman
+~NMichael Groark
+~NLateef Priester
+~NRoger Walco
+~NRodney Walden
+
+~T3D Artist
+~NPaul Waggonner
+
+~TSketches and Storyboards
+~NBrad Thornton
+
+~TAdditional Sketches
+~NJames Mayeda

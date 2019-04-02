@@ -1,1 +1,7 @@
-﻿Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+﻿Welcome to the Dark Reign 1.8.2 Community Patch Public Beta!
+
+If you have issues, please contact @Nielk1#0001 on the Dark Reign community discord linked on [darkreign.ws]. Numerous parts of this application create log files, as well as the game, which may be requested if issues occur.
+
+This product has no warranty as it is a fan work (and a beta). Your antivirus may attempt to block bootstrap.exe from functioning, if this occurs you must add bootstrap.exe as an exception in your antivirus configuration. The full source code for this patch is available at https://github.com/Nielk1/DarkReignLauncher if you'd like to inspect it or compile it yourself.
+
+Currently, Windows XP is not supported but Windows Vista and up should work.  All development has taken place on Windows 7.

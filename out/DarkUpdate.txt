@@ -1,0 +1,11 @@
+Only run in an empty folder.
+
+Be sure you have a Dark Reign 1.4 or higher install available as the updater will ask for its location to copy files from it into its local directory.
+
+You do not need 7z.exe if 7zip is installed on your machine already.
+
+Note that you may need to right click DarkUpdate.exe, do the properties, and click the Unblock button if the button is present. Windows automaticly blocks some programs that are new to the machine when they are downloaded from an internet browser. For .net based programs this can prevent network functions, like downloading files, from working properly.
+
+Note that bootstrap.exe is likely to be detected as a virus because it injects assembly code into DKREIGN.EXE at runtime. It also injects function hooks between the game and some system libraries to intercept calls and modify them.
+
+The full source code for this project is available at https://github.com/Nielk1/DarkReignLauncher

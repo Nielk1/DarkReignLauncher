@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DarkReignBootstrap")]
-[assembly: AssemblyDescription("Bootstrap for Dark Reign Launcher")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyTitle("Dark Update")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("Dark Reign Community Patch Updater")]
 [assembly: AssemblyCompany("John 'Nielk1' Klein")]
-[assembly: AssemblyProduct("Dark Reign Bootstrap")]
+[assembly: AssemblyProduct("Dark Update")]
 [assembly: AssemblyCopyright("Copyright ©John 'Nielk1' Klein 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("90173f7d-9fc8-4f6f-baba-19be5263918f")]
+[assembly: Guid("99d8fbc2-3c13-4372-9d25-35baab6037c7")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1.2.0")]
-[assembly: AssemblyFileVersion("1.1.2.0")]
+[assembly: AssemblyVersion("0.1.1.0")]
+[assembly: AssemblyFileVersion("0.1.1.0")]

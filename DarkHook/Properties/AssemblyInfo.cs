@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DarkHook")]
 [assembly: AssemblyDescription("DLL Hooks for Dark Reign Launcher")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("John \"Nielk1\" Klein")]
+[assembly: AssemblyCompany("John 'Nielk1' Klein")]
 [assembly: AssemblyProduct("Dark Hook")]
-[assembly: AssemblyCopyright("Copyright ©John \"Nielk1\" Klein 2018")]
+[assembly: AssemblyCopyright("Copyright ©John 'Nielk1' Klein 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

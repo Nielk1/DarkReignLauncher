@@ -1,0 +1,416 @@
+~TDARK REIGN PATCH v1.8.1
+
+~Twww.darkreignws.com
+~Twww.darkreign.ws
+
+~TCREATED BY     SPECIAL THANKS
+
+Magpie       Nielk1
+
+
+
+~TDARK REIGN EXPANSION:  RISE OF THE SHADOWHAND
+
+
+~TPRODUCTION TEAM
+
+~TDirection by
+~NTrey Watkins
+
+~TProduction Management by
+~NMarc Turndorf
+
+~TArt Director
+~NRodney Walden
+
+~TLead Game Design by
+~NJames Farley
+
+~TGame Design by
+~NEric Gewirtz
+~NBrad Santos
+
+~TOriginal Story by
+~NEric Gewirtz
+~NBrad Santos
+
+~TAssociate Production by
+~NHuisok Pyon
+
+~TEngine Programming by
+~NGordon Moyes
+
+~TNetwork Programming by
+~NMatthew Versluys
+
+~TAdditional Programming by
+~NDan Kegel
+
+~T2D/3D Artists
+~NFranz Boehm
+~NChris Guzman
+~NRodney Walden
+
+~TTechnical Artist
+~NChris Guzman
+
+~TAdditional Art by
+~NAURAN
+~NJacob Hutson
+~NLachlan Creagh
+~NBrad Welch
+
+~TSketches and Storyboards
+~NBrad Thornton
+
+~TIntro and Outro Movies
+~NBLUR
+~NRyan Berg
+~NCat Chapman
+~NTom Dillon
+~NSam Gebhardt
+~NTim Miller
+~NTim Montijo
+~NEric Pinkel
+~NAaron Powell
+~NDuane Powell
+~NJenn O Rama
+~NPeter Smith
+
+~TIntro and Outro Movies Written by
+~NTrey Watkins
+~NEric Gerwirtz
+
+~TCinematic Sound Provided by
+~NIntersound
+~NLos Angeles, CA
+
+~TSupervising Sound Designer
+~NMichael Mancini
+
+~TVoice-Over Recording and Processing
+~NMichael Schwartz
+
+~TSound Design
+~NBrian Bright
+~NMichael Schwartz
+
+~TDialog Editor
+~NMichael Schwartz
+
+~TVoice-Over Talent
+~NKimberly Brooks
+~NBrad Santos
+~NAnthony Korotko
+~NGreg Borrud
+~NSarah Cigliano
+~NTrey Watkins
+~NJay Sosnicki
+~NTyler Moore
+~NNadine Theuzillot
+~NRobert 'Bobby' Berger
+~NMike Vaez
+~NMatt Candler
+
+~TIn Game Sound Effects Engineering by
+~NMichael Schwartz
+
+~TOriginal Music Score Composed and Performed by
+~NDanny Pelfrey
+
+~TTitle Movie Music Remix by
+~NBrain Bright
+
+~TTitle Movie Additional Graphics
+~NDave Dalzell
+
+~TTitle Movie Edited by
+~NChris Hepburn
+
+~TVideo Processing and Compression by
+~NChris Hepburn
+
+~TQUALITY ASSURANCE
+
+~TQuality Assurance Senior Project Lead
+~NJason Wong
+
+~TQuality Assurance Project Lead
+~NNadine Theuzillot
+
+~TQuality Assurance Database Manager
+~NMarietta Pashayan
+
+~TQuality Assurance Test Team
+~NSam Nouriani
+~NJuan Valdes
+~NMichael Denny
+~NDamien Fischer
+~NSamantha Lee
+~NAaron Casillas
+~NTodd Komesu
+~NMatt Powers
+~NClayton Retzer
+~NJimmy Duong
+
+~TWar Room Testers
+~NJon Graehl
+~NAndres Roman
+~NTim Mossbarger
+~NClifton Shaw
+~NKerim Emre
+~NJorge Maldonado
+~NWilliam Lui
+~NMichael Malone
+~NJohn Nguyen
+~NThomas Mix
+
+~TExternal Beta Testers
+~NMark Ferris
+~NPatrick McIntyre
+~NDan Hsu
+~NKraig Kujawa
+~NSteven Petty
+~NJulian Figeroa
+~NGraeme Clark
+~NJames McCoy
+~NPaul Mugerditchian
+~NJonathan Bray
+~NScott Stahl
+~NRyan Bell
+~NJason Loebbaka
+~NCalvin Vo
+~NJames Chang
+~NMatthew Hunter
+~NSteven McDuffie
+~NDylan Sauce
+~NChris Kuntz
+~NBart Abels
+~NRonnie Stanford
+~NDavid Murr
+~NRon Desrosiers
+~NGreg Winslow
+~NCharles MacTavish
+~NAntonio Macias
+~NMichael Cantor
+~NKevin Shenk
+~NBrad Maurer
+~NMohamed Hafez
+~NHans Zieffle
+~NJames Gillespie
+~NDennis Robles
+~NJosh Rogers
+~NBen Leahy
+~NFrankie Racioppi
+~NStuart McLean
+~NNeil Dixon
+~NCharles Jones
+~NKal Kolberg
+~NJohn Mugerditchian
+~NToby Herman
+~NMatthew Otto
+~NJason Baldwin
+~NJohn O'Connell
+~NChris Newby
+~NCurt Burgess
+~NAlex Quick
+
+~TINSTALLER PROGRAMMING
+
+~TInstaller Programming Associate Producer
+~NAdam Goldberg
+
+~TInstaller Production Coordinator
+~NKevin Cohen
+
+~TInstaller Production Coordinator, Technical Help Files
+~NJason Feffer
+
+~TInstaller Programmer
+~NMason Deming
+
+~TLOCALIZATIONS
+
+~TLocalization Associate Producer
+~NBrian Diggs
+
+~TLocalization Production Coordinator
+~NBrian Clarke
+
+~TMARKETING
+
+~TMarketing Product Manager
+~NMichael Radiloff
+
+~TAssociate Product Manager and Online Help Guru
+~NJohn Heineke
+
+~TPublicist
+~NJamey Gottlieb
+
+~TPACKAGING AND DOCUMENTATION
+
+~TPackaging Design
+~NErik Jensen
+~NCindy Whitlock
+
+~TPackaging Illustration
+~NBLUR
+~NJeff Wack
+
+~TPackaging Copywriter
+~NVeronica Milito
+
+~TDocumentation
+~NMike Rivera
+~NBelinda M. Van Sickle
+~NBrad Santos
+~NMarc Turndorf
+
+~TSet in the Dark Reign Universe Created by
+~NGreg Borrud
+~NChris Hewish
+~NJosh Resnick
+~NTrey Watkins
+
+~TSenior Vice President of Studio
+~NAlan Gershenfeld
+
+~TDirector of Production
+~NJosh Resnick
+
+~TDirector of QA and Customer Service
+~NJim Summers
+
+~TQuality Assurance Manager
+~NDavid Arnspiger
+
+~TSPECIAL THANKS
+~NMom and Dad
+~NGrandma
+~NMargaret Roper
+~NMaria Flagg	
+~NHeather Maxwell
+~NStephanie O'Malley
+~NSarah Cigliano
+~NJoseph Donaldson
+~NGreg Borrud
+~NIan Davis
+~NMatt Candler
+~NRobert Berger
+~NDave Stohl
+~NMatt Luce
+~NJohn Gizzi
+~NJohn Cibulski
+~NCat Chapman
+~NTodd Q. Jefferson
+~NAlan Gershenfeld
+~NSeth Flaum
+~NFiona Brook
+~NGreg Rubel
+~NAaron Casillas
+~NBrad Abelson
+~NChris Keim
+~NKip Bollin
+~NTyler Moore
+~NElaine Skolnick
+~NMorton Turndorf
+~NMatt and Debra Scharlin
+~NJudy Casanova
+~NMichael Turndorf
+~NSonya Versluys
+~NJim Summers
+~NDavid Arnspiger
+~NJim Hudson
+~NTodd Komesu
+~NShana
+~NBotchie
+~NHarlow
+~NOprah
+~NTyler Scott
+~NKaren Begg
+~NRuth Pearson
+~NLaura Weisman
+~NPage Morris
+~NJenny Kang
+~NIndra Gunawan
+~NTony Villalobos
+~NJason Sullivan
+~NJason Wang
+~NOliver Danan
+~NJack Utley
+~NIngrid Gewirtz
+~NPhil Hong
+~NSean Vesce
+~NAlicia Reyes
+
+~Nand in all seriousness big wet kudos in particular to Kelly Wand
+
+~TMap and Mission Contest Winners
+~NBest Map: 4Web
+~NCreated by: Emmanuel Lagare
+
+~NBest Mission: Burn
+~NCreated by: Mark Major
+
+~TThe Rest of our Fun Stuff
+
+~NWicked's
+~N303...
+~N11:11
+~NEnjoy the Level You're On
+
+~NMarc's
+~NGo Dodgers
+~NCongratulations Seth and Rachael
+~NCongratulations Dave and Michelle
+
+
+~NYoda's
+~NThanks to Michelle Walter, Peter Lambert, 
+~Nand Peter Carter for making this possible.
+
+~NThanks to All the Devoted Fans Who've Helped Along the Way
+~NIncluding:
+
+~NArtorius
+~NBowlingBrad
+~NBurnYaBad
+~NCliff
+~NCowboy
+~NDeathSniper
+~NDrengor
+~NDrunk Old Man
+~NE-volved
+~NFloater
+~NGablian
+~NGalahadN
+~NGreyfox
+~NHellion
+~NHokies
+~NJoonKyu Lee (aka [MR]*JacKaL*)
+~NLando
+~NLazerous (its fixed)
+~NLeviticus
+~NLoomer
+~NLucifer
+~NMaebus
+~NMKU
+~NMarshie
+~NOrko
+~NPerceval
+~NPillageNBurn
+~NReDDog
+~NRezort
+~NRippen
+~NSacrifice
+~NShmitz
+~NSkaDaddy
+~NSkyknighT
+~NTactics
+~NTomas
+~NWardawn
+~NXiren Quizar
+~NZiEliN
+
+~NOur Appolgies to the countless ones who's names we've misplaced 

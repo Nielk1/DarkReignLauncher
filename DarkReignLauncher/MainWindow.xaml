@@ -208,18 +208,19 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    <local:OutlinedTextBlock x:Name="VersionInfo"
-                                             Text=""
-                                             FontFamily="Consolas"
-                                             FontSize="10pt"
-                                             FontWeight="Black"
-                                             TextWrapping="NoWrap"
-                                             Fill="White"
-                                             Stroke="Black"
-                                             StrokeThickness="0.3"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Bottom"
-                                             Margin="0,0,0,1"/>
+                    <Viewbox Margin="30,0,30,1"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Bottom">
+                        <local:OutlinedTextBlock x:Name="VersionInfo"
+                                                 Text=""
+                                                 FontFamily="Consolas"
+                                                 FontSize="10pt"
+                                                 FontWeight="Black"
+                                                 TextWrapping="NoWrap"
+                                                 Fill="White"
+                                                 Stroke="Black"
+                                                 StrokeThickness="0.3"/>
+                    </Viewbox>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="{Binding Mode=OneWay, Source={StaticResource CornerSize}}"/>
