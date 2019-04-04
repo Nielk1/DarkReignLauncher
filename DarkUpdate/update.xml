@@ -1503,6 +1503,10 @@
     <Module>tileset_auralien.1.zip</Module>
     <Module>tileset_aust.1.zip</Module>
     <Module>tileset_volcanic.1.zip</Module>
+    <Module>fast_cubes.1.zip</Module>
+    <Module>fix_cubes.1.zip</Module>
+    <Module>hide_drk_sp_bttn.1.zip</Module>
+    <Module>hide_exp_sp_bttn.1.zip</Module>
   </Modules>
   <OldModules>
     <Module>binary.1.zip</Module>
