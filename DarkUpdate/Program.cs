@@ -57,6 +57,31 @@ namespace DarkUpdate
                     XmlSerializer serializer = new XmlSerializer(typeof(UpdateData));
                     data = (UpdateData)serializer.Deserialize(File.OpenRead(Path.Combine("DarkUpdate", "update.xml")));
                 }
+
+                {
+                    int[] fileVersion = data.Version.Split('.').Select(dr => int.Parse(dr)).ToArray();
+                    int[] programVersion = Version.Split('.').Select(dr => int.Parse(dr)).ToArray();
+
+                    bool ok = true;
+                    for(int i=0;i<4;i++)
+                    {
+                        if(fileVersion[i] > programVersion[i])
+                        {
+                            ok = false;
+                            break;
+                        }
+                    }
+
+                    if (!ok)
+                    {
+                        WriteDangerLine("Updater is out of date.");
+                        WriteDangerLine($"Updater: {Version}");
+                        WriteDangerLine($"Metadata: {data.Version}");
+                        ConsolePause("Please download an updated version and try again.");
+                        return;
+                    }
+                }
+
                 WriteLine("Checking local directory for Dark Reign resources");
                 if (!File.Exists("DKREIGN.EXE"))
                 {

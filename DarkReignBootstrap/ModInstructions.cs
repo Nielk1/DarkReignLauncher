@@ -19,6 +19,7 @@ namespace DarkReignBootstrap
         public List<Tuple<IntPtr, byte[]>> AsmInjections { get; set; }
         public List<string> ModPaths { get; set; }
         public List<string> BlockDirs { get; set; }
+        public List<string> BlockFiles { get; set; }
         public string SaveFolder { get; set; }
         public List<ModOption> Options { get; set; }
 
@@ -43,6 +44,7 @@ namespace DarkReignBootstrap
             AsmInjections = new List<Tuple<IntPtr, byte[]>>();
             ModPaths = new List<string>();
             BlockDirs = new List<string>();
+            BlockFiles = new List<string>();
             SaveFolder = null;
 
             string[] lines = File.ReadAllLines(ModFilePath);
@@ -184,7 +186,7 @@ namespace DarkReignBootstrap
                             catch { }
                         }
                         break;
-                    /*case "BLOCKDIR":
+                    case "BLOCKDIR":
                         {
                             try
                             {
@@ -192,7 +194,16 @@ namespace DarkReignBootstrap
                             }
                             catch { }
                         }
-                        break;*/
+                        break;
+                    case "BLOCKFILE":
+                        {
+                            try
+                            {
+                                BlockFiles.Add(lineParts[1].ToLowerInvariant());
+                            }
+                            catch { }
+                        }
+                        break;
                 }
             }
         }
@@ -278,6 +289,7 @@ namespace DarkReignBootstrap
                     channelName,        // the parameters to pass into injected library
                     ModPaths,
                     BlockDirs,
+                    BlockFiles,
                     SaveFolder ?? string.Empty
                 );
 
@@ -329,6 +341,7 @@ namespace DarkReignBootstrap
                         channelName,        // the parameters to pass into injected library
                         ModPaths,
                         BlockDirs,
+                        BlockFiles,
                         SaveFolder ??string.Empty
                     );
                 }

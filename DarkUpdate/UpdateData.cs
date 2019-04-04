@@ -6,7 +6,9 @@ namespace DarkUpdate
     [XmlRoot("UpdateData")]
     public class UpdateData
     {
-        //[XmlElement("BaseFile")]
+        [XmlElement("Version")]
+        public string Version { get; set; }
+
         [XmlArray("BaseFiles")]
         [XmlArrayItem("File", typeof(string))]
         public List<string> BaseFiles { get; set; }

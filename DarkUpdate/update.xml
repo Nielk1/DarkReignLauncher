@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?> 
 <UpdateData>
+  <Version>0.1.2.0</Version>
   <BaseFiles>
     <File>AIPEDIT.EXE</File>
     <File>anet.inf</File>
@@ -14,9 +15,6 @@
     <File>license.txt</File>
     <File>MSS16.DLL</File>
     <File>mss32.dll</File>
-    <File>MSSB16.TSK</File>
-    <File>msvcp90.dll</File>
-    <File>msvcr90.dll</File>
     <File>MSVCRT.DLL</File>
     <File>readme.txt</File>
     <File>servers.dat</File>
@@ -373,7 +371,6 @@
     <File>dark\local\GAMEMSG.TXT</File>
     <File>dark\local\HELP.TXT</File>
     <File>dark\local\MLSTRING.CFG</File>
-    <File>dark\local\MlstrnEx.txt</File>
     <File>dark\movies\HELLO.SMK</File>
     <File>dark\movies\INTRO.SMK</File>
     <File>dark\movies\OUTRO.SMK</File>
@@ -1413,36 +1410,42 @@
     <File>dark\shell\USACREDT.TXT</File>
     <File>dark\sndfx\SOUNDS.FTG</File>
     <File>dark\sndfx\soundsEx.ftg</File>
-    <File>dark\temp\spacer</File>
-    <File>help\GAME.GID</File>
     <File>help\GAME.HLP</File>
     <File>help\HELP.CNT</File>
     <File>help\HELP.EXE</File>
-    <File>help\HELP.GID</File>
     <File>help\HELP.HLP</File>
     <File>help\README.CNT</File>
     <File>help\README.DOC</File>
-    <File>help\README.GID</File>
     <File>help\README.HLP</File>
     <File>help\Shadow.CNT</File>
-    <File>help\SHADOW.GID</File>
     <File>help\Shadow.hlp</File>
     <File>help\VENDOR.CNT</File>
-    <File>help\VENDOR.GID</File>
     <File>help\VENDOR.HLP</File>
     <File>help\VOCAB.CNT</File>
-    <File>help\VOCAB.GID</File>
     <File>help\VOCAB.HLP</File>
+  </BaseFiles>
+  <DeleteFiles>
+    <File>help\GAME.GID</File>
+    <File>help\HELP.GID</File>
+    <File>help\README.GID</File>
+    <File>help\SHADOW.GID</File>
+    <File>help\VENDOR.GID</File>
+    <File>help\VOCAB.GID</File>
+    <File>msvcp90.dll</File>
+    <File>msvcr90.dll</File>
     <File>safeedit\COMMNFSM.SAF</File>
     <File>safeedit\DISCLAIM.TXT</File>
     <File>safeedit\END.SAF</File>
     <File>safeedit\FSM.SAF</File>
     <File>safeedit\SAFEEDIT.EXE</File>
     <File>safeedit\SESTRUCT.H</File>
-  </BaseFiles>
+    <File>dark\temp\spacer</File>
+    <File>dark\local\MlstrnEx.txt</File>
+    <File>MSSB16.TSK</File>
+  </DeleteFiles>
   <Modules>
-    <Module>binary.1.zip</Module>
-    <Module>ldata.1.zip</Module>
+    <Module>binary.2.zip</Module>
+    <Module>ldata.2.zip</Module>
     <Module>maps_1_alien_2.1.zip</Module>
     <Module>maps_1_alien_3.1.zip</Module>
     <Module>maps_1_alien_4.1.zip</Module>
@@ -1502,7 +1505,7 @@
     <Module>tileset_volcanic.1.zip</Module>
   </Modules>
   <OldModules>
-    <Module>shims.zip</Module>
-    <Module>music.zip</Module>
+    <Module>binary.1.zip</Module>
+    <Module>ldata.1.zip</Module>
   </OldModules>
 </UpdateData>

@@ -6,7 +6,6 @@ BACK	bg-shadowhand.png
 ASM	hack_save_fix
 ASM	fixed_instead_of_disc
 ASM	force_disc_exp
-ASM	shell_movie_fix_framewait
 MOD	hide_drk_sp_bttn
 MOD	patch_1_8_2
 MOD	maps_1_alien_2

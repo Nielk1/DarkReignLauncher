@@ -31,6 +31,7 @@ namespace DarkHook
         string BasePath;
         List<string> ModPaths;
         List<string> BlockDirs;
+        List<string> BlockFiles;
         string SaveFolder;
 
         Dictionary<string, string> PathRedirectCache;
@@ -51,7 +52,7 @@ namespace DarkHook
         /// </summary>
         /// <param name="context">The RemoteHooking context</param>
         /// <param name="channelName">The name of the IPC channel</param>
-        public InjectionEntryPoint(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, List<string> BlockDirs, string SaveFolder)
+        public InjectionEntryPoint(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, List<string> BlockDirs, List<string> BlockFiles, string SaveFolder)
         {
             PathRedirectCache = new Dictionary<string, string>();
             FindFileOverides = new Dictionary<IntPtr, FindFileMeta>();
@@ -60,6 +61,7 @@ namespace DarkHook
             BasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\";
             this.ModPaths = ModPaths;
             this.BlockDirs = BlockDirs;
+            this.BlockFiles = BlockFiles;
             this.SaveFolder = SaveFolder;
 
             VolSet = 127;
@@ -103,7 +105,7 @@ namespace DarkHook
         /// </summary>
         /// <param name="context">The RemoteHooking context</param>
         /// <param name="channelName">The name of the IPC channel</param>
-        public void Run(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, List<string> BlockDirs, string SaveFolder)
+        public void Run(EasyHook.RemoteHooking.IContext context, string channelName, List<string> ModPaths, List<string> BlockDirs, List<string> BlockFiles, string SaveFolder)
         {
             //System.Threading.Thread.Sleep(1000 * 20); // time to attach debugger
 
@@ -360,34 +362,47 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
             if (filename.StartsWith(@"dark\"))
             {
-                if (ModPaths.Count > 0)
+                //if (ModPaths.Count > 0)
                 {
                     foreach (string modpath in ModPaths)
                     {
+                        string PathCheckFragment = $@"mods\{modpath}\"
+                                                 + filename.Substring(5);
                         string CandidatePath = (HadBaseInfront ? BasePath : string.Empty)
                                              + (HadOddPeriod ? @".\" : string.Empty)
-                                             + $@"mods\{modpath}\"
-                                             + filename.Substring(5);
+                                             + PathCheckFragment;
                         if (File.Exists(CandidatePath))
                         {
-                            PathRedirectCache[originalFilename] = CandidatePath;
-                            type = PathType.Redirect;
-                            return CandidatePath;
+                            if (!BlockDirs.Any(blk => PathCheckFragment.ToLowerInvariant().StartsWith(blk))
+                             && !BlockFiles.Any(blk => PathCheckFragment == blk))
+                            {
+                                PathRedirectCache[originalFilename] = CandidatePath;
+                                type = PathType.Redirect;
+                                return CandidatePath;
+                            }
                         }
                     }
 
-                    // cache the same to same map in the memo
-                    PathRedirectCache[originalFilename] = originalFilename;
-                    type = PathType.Pass;
-                    return originalFilename;
+                    if (BlockDirs.Any(blk => filename.ToLowerInvariant().StartsWith(blk))
+                     || BlockFiles.Any(blk => filename == blk))
+                    {
+                        type = PathType.Block;
+                        return null;
+                    }
+                    { 
+                        // cache the same to same map in the memo
+                        PathRedirectCache[originalFilename] = originalFilename;
+                        type = PathType.Pass;
+                        return originalFilename;
+                    }
                 }
-                else
-                {
-                    // we have no mods, use a normal load
-                    PathRedirectCache[originalFilename] = originalFilename;
-                    type = PathType.Pass;
-                    return originalFilename;
-                }
+                //else
+                //{
+                //    // we have no mods, use a normal load
+                //    PathRedirectCache[originalFilename] = originalFilename;
+                //    type = PathType.Pass;
+                //    return originalFilename;
+                //}
             }
 
             // nothing else opened it, so pass through
@@ -523,6 +538,21 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             {
                 PathType dirType;
                 string redirectedFilename = GetFirstValidPath(filename.ToLowerInvariant(), out dirType);
+
+                if (dirType == PathType.Block)
+                {
+                    TrySendMessage(callID, new
+                    {
+                        function = "_access",
+                        module = "msvcrt",
+                        paramaters = new { filename = filename, mode = mode },
+                        notes = new { filename = redirectedFilename, dirType = dirType }
+                    });
+
+                    Kernel32.SetLastError(Msvcrt.ENOENT);
+                    return -1;
+                }
+
                 //if (dirType != PathType.NotFilePass && dirType != PathType.HardPass && dirType != PathType.CachedPass && dirType != PathType.SoftPass)
                     TrySendMessage(callID, new
                     {
@@ -569,7 +599,23 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             {
                 PathType dirType;
                 string redirectedFilename = GetFirstValidPath(filename.ToLowerInvariant(), out dirType);
-                if(dirType == PathType.Screenshot)
+
+                if (dirType == PathType.Block)
+                {
+                    TrySendMessage(callID, new
+                    {
+                        function = "CreateFileW",
+                        module = CreateFileW_Lib,
+                        paramaters = new { filename = filename, desiredAccess = desiredAccess, shareMode = shareMode, securityAttributes = securityAttributes, creationDisposition = creationDisposition, flagsAndAttributes = flagsAndAttributes, templateFile = templateFile },
+                        notes = new { dirType = dirType },
+                        @out = new { filename = redirectedFilename },
+                    });
+
+                    Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
+                    return Kernel32.INVALID_HANDLE_VALUE;
+                }
+
+                if (dirType == PathType.Screenshot)
                 {
                     TrySendMessage(callID, new
                     {
@@ -925,26 +971,31 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             foreach (string modpath in ModPaths)
             {
                 string newPath = $@"mods\{modpath}\" + path.Substring(5);
-
-                Kernel32.WIN32_FIND_DATAW tmp;
-                IntPtr Find = Kernel32.FindFirstFileExW(newPath, IntPtr.Zero, out tmp, IntPtr.Zero, IntPtr.Zero, 0);
-                if (Find == Kernel32.INVALID_HANDLE_VALUE)
+                if (!BlockDirs.Any(blk => newPath.ToLowerInvariant().StartsWith(blk)))
                 {
-                    continue;
+                    Kernel32.WIN32_FIND_DATAW tmp;
+                    IntPtr Find = Kernel32.FindFirstFileExW(newPath, IntPtr.Zero, out tmp, IntPtr.Zero, IntPtr.Zero, 0);
+                    if (Find == Kernel32.INVALID_HANDLE_VALUE)
+                    {
+                        continue;
+                    }
+                    {
+                        string intendedPath = tmp.cFileName.ToLowerInvariant();
+                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                    }
+                    for (; ; )
+                    {
+                        if (!Kernel32.FindNextFileW(Find, out tmp))
+                            break;
+                        string intendedPath = tmp.cFileName.ToLowerInvariant();
+                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                    }
+                    Kernel32.FindClose(Find);
                 }
-                {
-                    string intendedPath = tmp.cFileName.ToLowerInvariant();
-                    if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
-                }
-                for(; ;)
-                {
-                    if (!Kernel32.FindNextFileW(Find, out tmp))
-                        break;
-                    string intendedPath = tmp.cFileName.ToLowerInvariant();
-                    if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
-                }
-                Kernel32.FindClose(Find);
             }
+            if (!BlockDirs.Any(blk => path.ToLowerInvariant().StartsWith(blk)))
             {
                 Kernel32.WIN32_FIND_DATAW tmp;
                 IntPtr Find = Kernel32.FindFirstFileExW(path, IntPtr.Zero, out tmp, IntPtr.Zero, IntPtr.Zero, 0);
@@ -952,14 +1003,16 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                 {
                     {
                         string intendedPath = tmp.cFileName.ToLowerInvariant();
-                        if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
                     }
                     for (; ; )
                     {
                         if (!Kernel32.FindNextFileW(Find, out tmp))
                             break;
                         string intendedPath = tmp.cFileName.ToLowerInvariant();
-                        if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
                     }
                     Kernel32.FindClose(Find);
                 }
@@ -1094,7 +1147,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
                 if (filename.StartsWith(@"dark\"))
                 {
-                    if (ModPaths.Count > 0)
+                    //if (ModPaths.Count > 0)
                     {
                         object dummy = new object();
                         GCHandle retValX = GCHandle.Alloc(dummy);
@@ -1136,7 +1189,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                             return (IntPtr)retValX;
                         }
                     }
-                    if (BlockDirs.Any(blk => filename.ToLowerInvariant().StartsWith(blk)))
+                    /*if (BlockDirs.Any(blk => filename.ToLowerInvariant().StartsWith(blk)))
                     {
                         lpFindFileData = new Kernel32.WIN32_FIND_DATAW();
 
@@ -1146,11 +1199,11 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                             module = FindFirstFileExW_Lib,
                             paramaters = new { filename = originalFilename },
                             @return = Kernel32.INVALID_HANDLE_VALUE,
-                            notes = new { error = Kernel32.ERROR_IPSEC_IKE_ERROR, dirType = PathType.Block, blocked = true },
+                            notes = new { error = Kernel32.ERROR_FILE_NOT_FOUND, dirType = PathType.Block, blocked = true },
                             @out = new { lpFindFileData = lpFindFileData },
                         });
 
-                        Kernel32.SetLastError(Kernel32.ERROR_IPSEC_IKE_ERROR);
+                        Kernel32.SetLastError(Kernel32.ERROR_FILE_NOT_FOUND);
                         return Kernel32.INVALID_HANDLE_VALUE;
                     }
                     {
@@ -1167,7 +1220,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                             @out = new { lpFindFileData = lpFindFileData },
                         });
                         return retVal;
-                    }
+                    }*/
                 }
                 {
                     IntPtr retVal = Kernel32.FindFirstFileExW(originalFilename,  fInfoLevelId, out lpFindFileData, fSearchOp, lpSearchFilter, dwAdditionalFlags);
