@@ -1444,7 +1444,7 @@
     <File>MSSB16.TSK</File>
   </DeleteFiles>
   <Modules>
-    <Module>binary.2.zip</Module>
+    <Module>binary.3.zip</Module>
     <Module>ldata.2.zip</Module>
     <Module>maps_1_alien_2.1.zip</Module>
     <Module>maps_1_alien_3.1.zip</Module>
@@ -1509,6 +1509,7 @@
     <Module>hide_exp_sp_bttn.1.zip</Module>
   </Modules>
   <OldModules>
+    <Module>binary.2.zip</Module>
     <Module>binary.1.zip</Module>
     <Module>ldata.1.zip</Module>
   </OldModules>

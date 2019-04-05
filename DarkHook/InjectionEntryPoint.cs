@@ -58,7 +58,7 @@ namespace DarkHook
             FindFileOverides = new Dictionary<IntPtr, FindFileMeta>();
             ScreenshotFiles = new Dictionary<IntPtr, string>();
 
-            BasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\";
+            BasePath = Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)).ToLowerInvariant() + @"\";
             this.ModPaths = ModPaths;
             this.BlockDirs = BlockDirs;
             this.BlockFiles = BlockFiles;
@@ -960,7 +960,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
 
 
-        private FindFileMeta GenerateFindData(string path)
+        private FindFileMeta GenerateFindData(Guid callID, string path)
         {
             FindFileMeta meta = new FindFileMeta()
             {
@@ -971,7 +971,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
             foreach (string modpath in ModPaths)
             {
                 string newPath = $@"mods\{modpath}\" + path.Substring(5);
-                if (!BlockDirs.Any(blk => newPath.ToLowerInvariant().StartsWith(blk)))
+                if (!BlockDirs.Any(blk => (newPath.ToLowerInvariant().TrimEnd('\\') + '\\').StartsWith(blk)))
                 {
                     Kernel32.WIN32_FIND_DATAW tmp;
                     IntPtr Find = Kernel32.FindFirstFileExW(newPath, IntPtr.Zero, out tmp, IntPtr.Zero, IntPtr.Zero, 0);
@@ -981,21 +981,29 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                     }
                     {
                         string intendedPath = tmp.cFileName.ToLowerInvariant();
-                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
-                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                        if (!BlockFiles.Any(blk => newPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath))
+                            {
+                                files[intendedPath] = tmp;
+                                TrySendMessage(callID, new { foundItem = newPath });
+                            }
                     }
                     for (; ; )
                     {
                         if (!Kernel32.FindNextFileW(Find, out tmp))
                             break;
                         string intendedPath = tmp.cFileName.ToLowerInvariant();
-                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
-                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                        if (!BlockFiles.Any(blk => newPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath))
+                            {
+                                files[intendedPath] = tmp;
+                                TrySendMessage(callID, new { foundItem = newPath });
+                            }
                     }
                     Kernel32.FindClose(Find);
                 }
             }
-            if (!BlockDirs.Any(blk => path.ToLowerInvariant().StartsWith(blk)))
+            if (!BlockDirs.Any(blk => (path.ToLowerInvariant().TrimEnd('\\') + '\\').StartsWith(blk)))
             {
                 Kernel32.WIN32_FIND_DATAW tmp;
                 IntPtr Find = Kernel32.FindFirstFileExW(path, IntPtr.Zero, out tmp, IntPtr.Zero, IntPtr.Zero, 0);
@@ -1003,16 +1011,24 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
                 {
                     {
                         string intendedPath = tmp.cFileName.ToLowerInvariant();
-                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
-                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                        if (!BlockFiles.Any(blk => path == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath))
+                            {
+                                files[intendedPath] = tmp;
+                                TrySendMessage(callID, new { foundItem = path });
+                            }
                     }
                     for (; ; )
                     {
                         if (!Kernel32.FindNextFileW(Find, out tmp))
                             break;
                         string intendedPath = tmp.cFileName.ToLowerInvariant();
-                        if (!BlockFiles.Any(blk => intendedPath == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
-                            if (!files.ContainsKey(intendedPath)) files[intendedPath] = tmp;
+                        if (!BlockFiles.Any(blk => path == blk)) // TODO make sure this path is local, if it isn't we need to localize it to check the ignore/block command
+                            if (!files.ContainsKey(intendedPath))
+                            {
+                                files[intendedPath] = tmp;
+                                TrySendMessage(callID, new { foundItem = path });
+                            }
                     }
                     Kernel32.FindClose(Find);
                 }
@@ -1154,7 +1170,7 @@ mss32.dll :: _AIL_redbook_set_volume@8 - Redirect music set volume request");
 
                         lock (FindFileOverides)
                         {
-                            FindFileOverides[(IntPtr)retValX] = GenerateFindData(filename.ToLowerInvariant());
+                            FindFileOverides[(IntPtr)retValX] = GenerateFindData(callID, filename.ToLowerInvariant());
 
                             uint error = 0;
                             bool success = false;
