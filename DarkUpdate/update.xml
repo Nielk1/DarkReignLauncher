@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?> 
 <UpdateData>
-  <Version>0.1.2.0</Version>
+  <Version>0.1.3.0</Version>
   <BaseFiles>
     <File>AIPEDIT.EXE</File>
     <File>anet.inf</File>
@@ -1410,19 +1410,6 @@
     <File>dark\shell\USACREDT.TXT</File>
     <File>dark\sndfx\SOUNDS.FTG</File>
     <File>dark\sndfx\soundsEx.ftg</File>
-    <File>help\GAME.HLP</File>
-    <File>help\HELP.CNT</File>
-    <File>help\HELP.EXE</File>
-    <File>help\HELP.HLP</File>
-    <File>help\README.CNT</File>
-    <File>help\README.DOC</File>
-    <File>help\README.HLP</File>
-    <File>help\Shadow.CNT</File>
-    <File>help\Shadow.hlp</File>
-    <File>help\VENDOR.CNT</File>
-    <File>help\VENDOR.HLP</File>
-    <File>help\VOCAB.CNT</File>
-    <File>help\VOCAB.HLP</File>
   </BaseFiles>
   <DeleteFiles>
     <File>help\GAME.GID</File>
@@ -1442,6 +1429,49 @@
     <File>dark\temp\spacer</File>
     <File>dark\local\MlstrnEx.txt</File>
     <File>MSSB16.TSK</File>
+    <File>help\GAME.HLP</File>
+    <File>help\HELP.CNT</File>
+    <File>help\HELP.EXE</File>
+    <File>help\HELP.HLP</File>
+    <File>help\README.CNT</File>
+    <File>help\README.DOC</File>
+    <File>help\README.HLP</File>
+    <File>help\Shadow.CNT</File>
+    <File>help\Shadow.hlp</File>
+    <File>help\VENDOR.CNT</File>
+    <File>help\VENDOR.HLP</File>
+    <File>help\VOCAB.CNT</File>
+    <File>help\VOCAB.HLP</File>
+    <File>mods\evolution_of_xenite\aip\FDHDef.aip</File>
+    <File>mods\evolution_of_xenite\aip\FDHOff.aip</File>
+    <File>mods\evolution_of_xenite\aip\FDRush.aip</File>
+    <File>mods\evolution_of_xenite\aip\FGATTACK.FSM</File>
+    <File>mods\evolution_of_xenite\aip\FGDBASE.AIP</File>
+    <File>mods\evolution_of_xenite\aip\FGDEFEND.FSM</File>
+    <File>mods\evolution_of_xenite\aip\FGDPER.AIP</File>
+    <File>mods\evolution_of_xenite\aip\FGEVEN.FSM</File>
+    <File>mods\evolution_of_xenite\aip\FGEVEN1.AIP</File>
+    <File>mods\evolution_of_xenite\aip\FGEVEN2.AIP</File>
+    <File>mods\evolution_of_xenite\aip\FGSPECAL.FSM</File>
+    <File>mods\evolution_of_xenite\aip\IDHDef.AIP</File>
+    <File>mods\evolution_of_xenite\aip\IDHOff.AIP</File>
+    <File>mods\evolution_of_xenite\aip\IDRush.aip</File>
+    <File>mods\evolution_of_xenite\aip\IMPEVEN1.AIP</File>
+    <File>mods\evolution_of_xenite\aip\IMPEVEN2.AIP</File>
+    <File>mods\evolution_of_xenite\aip\IPATTACK.FSM</File>
+    <File>mods\evolution_of_xenite\aip\IPDBASE.AIP</File>
+    <File>mods\evolution_of_xenite\aip\IPDEFEND.FSM</File>
+    <File>mods\evolution_of_xenite\aip\IPDPER.AIP</File>
+    <File>mods\evolution_of_xenite\aip\IPEVEN.FSM</File>
+    <File>mods\evolution_of_xenite\aip\IPSPECAL.FSM</File>
+    <File>mods\evolution_of_xenite\aip\TATTACK.FSM</File>
+    <File>mods\evolution_of_xenite\aip\TDBASE.AIP</File>
+    <File>mods\evolution_of_xenite\aip\TDEFEND.FSM</File>
+    <File>mods\evolution_of_xenite\aip\TDPER.AIP</File>
+    <File>mods\evolution_of_xenite\aip\TEVEN.FSM</File>
+    <File>mods\evolution_of_xenite\aip\TEVEN1.AIP</File>
+    <File>mods\evolution_of_xenite\aip\TEVEN2.AIP</File>
+    <File>mods\evolution_of_xenite\aip\TSPECIAL.FSM</File>
   </DeleteFiles>
   <Modules>
     <Module>binary.3.zip</Module>
@@ -1507,10 +1537,12 @@
     <Module>fix_cubes.1.zip</Module>
     <Module>hide_drk_sp_bttn.1.zip</Module>
     <Module>hide_exp_sp_bttn.1.zip</Module>
+    <Module>evolution_of_xenite.2.zip</Module>
   </Modules>
   <OldModules>
     <Module>binary.2.zip</Module>
     <Module>binary.1.zip</Module>
     <Module>ldata.1.zip</Module>
+    <Module>evolution_of_xenite.1.zip</Module>
   </OldModules>
 </UpdateData>

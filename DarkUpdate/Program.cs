@@ -45,7 +45,7 @@ namespace DarkUpdate
                 }
                 catch
                 {
-                    WriteDangerLine("Please install 7zip or place 7z.exe in the same folder as this this program");
+                    WriteDangerLine("Please install 7zip or place 7za.exe in the same folder as this this program");
                     ConsolePause("Press any key to exit.");
                     return;
                 }
@@ -228,12 +228,12 @@ namespace DarkUpdate
                     client.DownloadFile("https://darkreign.iondriver.com/patch/" + file, Path.Combine("DarkUpdate", file));
                     Process.Start(new ProcessStartInfo()
                     {
-                        FileName = "7z.exe",
+                        FileName = "7za.exe",
                         //WorkingDirectory = Directory.GetCurrentDirectory(),
                         Arguments = $"x -aoa \"{Path.Combine("DarkUpdate", file)}\"",
                         UseShellExecute = false,
                     }).WaitForExit();
-                    WriteLine($"x -aoa \"{Path.Combine("DarkUpdate", file)}\"");
+                    //WriteLine($"x -aoa \"{Path.Combine("DarkUpdate", file)}\"");
                     //File.Delete(Path.Combine("DarkUpdate", file));
                     //File.CreateText(Path.Combine("DarkUpdate", file + ".installed")).Close();
                     File.Move(Path.Combine("DarkUpdate", file), Path.Combine("DarkUpdate", file + ".installed"));
@@ -278,6 +278,19 @@ namespace DarkUpdate
 
         static void CopyDarkReign()
         {
+            if(File.Exists("darkcore.zip"))
+            {
+                WriteLine("darkcore.zip detected. Attempting full install. If darkcore.zip is in error, please delete it and try again.");
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = "7za.exe",
+                    //WorkingDirectory = Directory.GetCurrentDirectory(),
+                    Arguments = $"x -aoa \"darkcore.zip\"",
+                    UseShellExecute = false,
+                }).WaitForExit();
+                WriteLine("Extract complete.");
+                return;
+            }
             WriteLine("Please select DKREIGN.EXE from a 1.4 installation to copy into this location.");
             ConsolePause("Press any key to select DKREIGN.EXE");
             OpenFileDialog dlg = new OpenFileDialog();
