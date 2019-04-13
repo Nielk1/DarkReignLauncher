@@ -39,7 +39,7 @@ namespace DarkUpdate
                 {
                     Process.Start(new ProcessStartInfo()
                     {
-                        FileName = "7z.exe",
+                        FileName = "7za.exe",
                         UseShellExecute = false,
                     }).WaitForExit();
                 }
