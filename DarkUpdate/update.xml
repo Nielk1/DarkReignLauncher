@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?> 
 <UpdateData>
-  <Version>0.1.3.0</Version>
+  <Version>0.1.5.0</Version>
+  <IniFixes>
+    <IniFix File="TACTICS.CFG" Section="MultiPlayer" Key="ActiveNetServer" Value="battlezone1.net" />
+  </IniFixes>
   <BaseFiles>
     <File>AIPEDIT.EXE</File>
     <File>anet.inf</File>

@@ -9,6 +9,10 @@ namespace DarkUpdate
         [XmlElement("Version")]
         public string Version { get; set; }
 
+        [XmlArray("IniFixes")]
+        [XmlArrayItem("IniFix", typeof(IniFix))]
+        public List<IniFix> IniFixes { get; set; }
+
         [XmlArray("BaseFiles")]
         [XmlArrayItem("File", typeof(string))]
         public List<string> BaseFiles { get; set; }
@@ -24,5 +28,20 @@ namespace DarkUpdate
         [XmlArray("OldModules")]
         [XmlArrayItem("Module", typeof(string))]
         public List<string> OldModules { get; set; }
+    }
+
+    public class IniFix
+    {
+        [XmlAttribute("File")]
+        public string File { get; set; }
+
+        [XmlAttribute("Section")]
+        public string Section { get; set; }
+
+        [XmlAttribute("Key")]
+        public string Key { get; set; }
+
+        [XmlAttribute("Value")]
+        public string Value { get; set; }
     }
 }

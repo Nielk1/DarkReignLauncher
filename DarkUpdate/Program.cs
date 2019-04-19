@@ -1,4 +1,6 @@
-﻿using System;
+﻿using IniParser.Model;
+using IniParser.Parser;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -103,6 +105,8 @@ namespace DarkUpdate
                 CleanOldModules();
 
                 DownloadNewModules();
+
+                FixInis();
 
                 WriteLine("Starting Launcher");
 
@@ -213,6 +217,25 @@ namespace DarkUpdate
                 }
             }
             WriteLine($"Done Checking Old Modules");
+        }
+
+        static void FixInis()
+        {
+            WriteLine($"Fixing Inis");
+
+            IniDataParser parser = new IniDataParser();
+            data.IniFixes.GroupBy(dr => dr.File).ToList().ForEach(dr =>
+            {
+                if (File.Exists(dr.Key))
+                {
+                    IniData config = parser.Parse(File.ReadAllText(dr.Key));
+                    foreach (IniFix fix in dr)
+                    {
+                        config[fix.Section][fix.Key] = fix.Value;
+                    }
+                    File.WriteAllText(dr.Key, config.ToString());
+                }
+            });
         }
 
         static void DownloadNewModules()
