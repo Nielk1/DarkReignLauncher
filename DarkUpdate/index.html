@@ -10,9 +10,9 @@
         */
 
         /* Links */
-        a,
-        a:focus,
-        a:hover {
+        #page a,
+        #page a:focus,
+        #page a:hover {
             color: #fff;
         }
 
@@ -29,9 +29,23 @@
         body {
             display: -ms-flexbox;
             display: flex;
+        }
+            body::before {
+                content: '';
+                display: -ms-flexbox;
+                display: flex;
+                box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
+                height: 100vh;
+                width: 100vw;
+                position: fixed;
+                background-color: #333;
+                z-index: 0;
+            }
+
+        #page {
             color: #fff;
             text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
-            box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
+            z-index: 1;
         }
 
         .cover-container {
@@ -134,9 +148,9 @@
     </style>
     <title>Dark Reign 1.8.2 Public Beta</title>
 </head>
-<body class="text-center">
+<body>
 
-    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    <div id="page" class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column text-center">
         <header class="masthead mb-auto">
             <!--<div class="inner">
                 <h3 class="masthead-brand">Dark Reign 1.8.2</h3>
@@ -156,6 +170,11 @@
                 <a title="Community Discord" href="https://discord.gg/WFS9RNS" target="_blank" class="btn btn-lg btn-discord"><img src="discord.svg" alt="Community Discord" style="height:100%;" /></a>
                 <a title="Patch Source" href="https://github.com/Nielk1/DarkReignLauncher" target="_blank" class="btn btn-lg btn-github"><img src="github.png" alt="Patch Source" style="height:100%;" /></a>
             </p>
+            <p class="lead">
+                <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#redistModal">
+                    It says I'm missing something?
+                </button>
+            </p>
         </main>
 
         <footer class="mastfoot mt-auto">
@@ -165,6 +184,35 @@
         </footer>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="redistModal" tabindex="-1" role="dialog" aria-labelledby="redistModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="redistModalLabel">It says I'm missing something?</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <h5>Missing .net 4?</h5>
+                        You probably want to use the Web Installer as you need an internet connection for DarkUpdate to function properly anyway.<br/>
+                        <a class="font-weight-bold" href="https://www.microsoft.com/en-us/download/details.aspx?id=17851" target="_blank">Download Microsoft .NET Framework 4 (Web Installer)</a><br/>
+                        <a class="font-weight-bold" href="https://www.microsoft.com/en-us/download/details.aspx?id=17718" target="_blank">Download Microsoft .NET Framework 4 (Standalone Installer)</a>
+                    </p>
+                    <hr/>
+                    <p>
+                        <h5>"VCRUNTIME140.dll" is missing?</h5>
+                        Download the <a class="font-weight-bold" href="https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads" target="_blank">Visual C++ Redistributable.</a> Be sure to use x64 if your PC is 64 bit and x86 if your PC is 32 bit.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
