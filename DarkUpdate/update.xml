@@ -1531,7 +1531,7 @@
     <Module>music_b.1.zip</Module>
     <Module>music_c.1.zip</Module>
     <Module>patch_1_8_2.1.zip</Module>
-    <Module>shims.1.zip</Module>
+    <Module>shims.2.zip</Module>
     <Module>tileset_asteroid.1.zip</Module>
     <Module>tileset_auralien.1.zip</Module>
     <Module>tileset_aust.1.zip</Module>
@@ -1546,6 +1546,7 @@
     <Module>binary.2.zip</Module>
     <Module>binary.1.zip</Module>
     <Module>ldata.1.zip</Module>
+    <Module>shims.1.zip</Module>
     <Module>evolution_of_xenite.1.zip</Module>
   </OldModules>
 </UpdateData>
