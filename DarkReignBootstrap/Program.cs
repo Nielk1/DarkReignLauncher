@@ -49,11 +49,6 @@ namespace DarkReignBootstrap
 
                     Process DarkReignProcess = Process.Start(info);
 
-                    if (DarkReignProcess != null && !DarkReignProcess.HasExited)
-                    {
-                        Script.DoFunctionHook(DarkReignProcess);
-                    }
-
                     // start and do the hook, causes an ANET thread error dialog that's anoying
                     //Process DarkReignProcess = Script.DoFunctionHook("DKREIGN.EXE", CleanArguments);
 
@@ -97,6 +92,8 @@ namespace DarkReignBootstrap
                                     Console.WriteLine("Injecting ASM");
                                     Script.DoAsmInjections(DarkReignProcess);
                                     Console.WriteLine("Injected ASM");
+
+                                    Script.DoFunctionHook(DarkReignProcess);
 
                                     short shiftKeyStatus = User32.GetKeyState(User32.VirtualKeyStates.VK_LSHIFT);
                                     if (shiftKeyStatus >= 0)
