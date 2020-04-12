@@ -1477,7 +1477,7 @@
     <File>mods\evolution_of_xenite\aip\TSPECIAL.FSM</File>
   </DeleteFiles>
   <Modules>
-    <Module>binary.4.zip</Module>
+    <Module>binary.5.zip</Module>
     <Module>ldata.3.zip</Module>
     <Module>maps_1_alien_2.1.zip</Module>
     <Module>maps_1_alien_3.1.zip</Module>
@@ -1544,6 +1544,7 @@
   </Modules>
   <OldModules>
     <Module>fast_cubes.1.zip</Module>
+    <Module>binary.4.zip</Module>
     <Module>binary.3.zip</Module>
     <Module>binary.2.zip</Module>
     <Module>binary.1.zip</Module>
