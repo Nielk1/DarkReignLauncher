@@ -110,14 +110,14 @@ namespace DarkReignLauncher
 
             //Ddraw_ddraw_curres.IsChecked = config["ddraw"]["width"] == "true";
             //Ddraw_ddraw_curres.IsChecked = config["ddraw"]["height"] == "true";
-            Ddraw_ddraw_fullscreen.IsChecked = config["ddraw"]["fullscreen"] == "true";
-            Ddraw_ddraw_windowed.IsChecked = config["ddraw"]["windowed"] == "true";
-            Ddraw_ddraw_maintas.IsChecked = config["ddraw"]["maintas"] == "true";
-            Ddraw_ddraw_boxing.IsChecked = config["ddraw"]["boxing"] == "true";
-            Ddraw_ddraw_border.IsChecked = config["ddraw"]["border"] == "true";
-            Ddraw_ddraw_adjmouse.IsChecked = config["ddraw"]["adjmouse"] == "true";
-            Ddraw_ddraw_renderer.SelectedValue = config["ddraw"]["renderer"];
-            Ddraw_ddraw_shader.SelectedValue = config["ddraw"]["shader"];
+            Ddraw_ddraw_fullscreen.IsChecked = (config["DKReign"]["fullscreen"] ?? config["ddraw"]["fullscreen"]) == "true";
+            Ddraw_ddraw_windowed.IsChecked = (config["DKReign"]["windowed"] ?? config["ddraw"]["windowed"]) == "true";
+            Ddraw_ddraw_maintas.IsChecked = (config["DKReign"]["maintas"] ?? config["ddraw"]["maintas"]) == "true";
+            Ddraw_ddraw_boxing.IsChecked = (config["DKReign"]["boxing"] ?? config["ddraw"]["boxing"]) == "true";
+            Ddraw_ddraw_border.IsChecked = (config["DKReign"]["border"] ?? config["ddraw"]["border"]) == "true";
+            Ddraw_ddraw_adjmouse.IsChecked = (config["DKReign"]["adjmouse"] ?? config["ddraw"]["adjmouse"]) == "true";
+            Ddraw_ddraw_renderer.SelectedValue = config["DKReign"]["renderer"] ?? config["ddraw"]["renderer"];
+            Ddraw_ddraw_shader.SelectedValue = config["DKReign"]["shader"] ?? config["ddraw"]["shader"];
         }
 
         private void WriteIniDdraw()
@@ -128,14 +128,14 @@ namespace DarkReignLauncher
 
             //config["ddraw"]["width"] = Ddraw_ddraw_curres.IsChecked.HasValue ? Ddraw_ddraw_curres.IsChecked.Value ? System.Windows.SystemParameters.WorkArea.Width.ToString() : "0" : string.Empty;
             //config["ddraw"]["height"] = Ddraw_ddraw_curres.IsChecked.HasValue ? Ddraw_ddraw_curres.IsChecked.Value ? System.Windows.SystemParameters.WorkArea.Height.ToString() : "0" : string.Empty;
-            config["ddraw"]["fullscreen"] = Ddraw_ddraw_fullscreen.IsChecked ?? false ? "true" : "false";
-            config["ddraw"]["windowed"] = Ddraw_ddraw_windowed.IsChecked ?? false ? "true" : "false";
-            config["ddraw"]["maintas"] = Ddraw_ddraw_maintas.IsChecked ?? false ? "true" : "false";
-            config["ddraw"]["boxing"] = Ddraw_ddraw_boxing.IsChecked ?? false ? "true" : "false";
-            config["ddraw"]["border"] = Ddraw_ddraw_border.IsChecked ?? false ? "true" : "false";
-            config["ddraw"]["adjmouse"] = Ddraw_ddraw_adjmouse.IsChecked ?? false ? "true" : "false";
-            config["ddraw"]["renderer"] = (string)Ddraw_ddraw_renderer.SelectedValue;
-            config["ddraw"]["shader"] = (string)Ddraw_ddraw_shader.SelectedValue;
+            config["DKReign"]["fullscreen"] = Ddraw_ddraw_fullscreen.IsChecked ?? false ? "true" : "false";
+            config["DKReign"]["windowed"] = Ddraw_ddraw_windowed.IsChecked ?? false ? "true" : "false";
+            config["DKReign"]["maintas"] = Ddraw_ddraw_maintas.IsChecked ?? false ? "true" : "false";
+            config["DKReign"]["boxing"] = Ddraw_ddraw_boxing.IsChecked ?? false ? "true" : "false";
+            config["DKReign"]["border"] = Ddraw_ddraw_border.IsChecked ?? false ? "true" : "false";
+            config["DKReign"]["adjmouse"] = Ddraw_ddraw_adjmouse.IsChecked ?? false ? "true" : "false";
+            config["DKReign"]["renderer"] = (string)Ddraw_ddraw_renderer.SelectedValue;
+            config["DKReign"]["shader"] = (string)Ddraw_ddraw_shader.SelectedValue;
 
             if (File.Exists(@"..\ddraw.ini") && !File.Exists(@"..\ddraw.ini.bak")) File.Copy(@"..\ddraw.ini", @"..\ddraw.ini.bak");
             File.WriteAllText(@"..\ddraw.ini", config.ToString());
