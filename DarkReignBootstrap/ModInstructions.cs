@@ -47,6 +47,7 @@ namespace DarkReignBootstrap
             BlockFiles = new List<string>();
             SaveFolder = null;
 
+            Dictionary<string, ModOption> OptionCache = new Dictionary<string, ModOption>();
             string[] lines = File.ReadAllLines(ModFilePath);
             for (int i = 0; i < lines.Length; i++)
             {
@@ -54,32 +55,14 @@ namespace DarkReignBootstrap
 
                 if(lineParts[0] == "OPT")
                 {
-                    if(lineParts.Length > 4)
+                    if(lineParts.Length > 3)
                     {
-                        if (OptionCheck.Contains(lineParts[1]))
-                        {
-                            Options.Add(new ModOption()
-                            {
-                                ID = lineParts[1],
-                                Title = lineParts[2],
-                                Parent = this,
-                                Active = true,
-                            });
+                        ModOption opt = OptionCache[lineParts[1]];
 
-                            // we are an option that is active, that means we skip the first 3 data blocks which are the magic string, optionid, and description
-                            lineParts = lineParts.Skip(3).ToArray();
-                        }
-                        else
+                        if (opt.Active)
                         {
-                            Options.Add(new ModOption()
-                            {
-                                ID = lineParts[1],
-                                Title = lineParts[2],
-                                Parent = this,
-                                Active = false,
-                            });
-
-                            continue;
+                            // we are an option that is active, that means we skip the first 2 data blocks which are the magic string and optionid
+                            lineParts = lineParts.Skip(2).ToArray();
                         }
                     }
                     else
@@ -135,6 +118,27 @@ namespace DarkReignBootstrap
                             if (lineParts.Length > 1 && !string.IsNullOrWhiteSpace(lineParts[1]))
                             {
                                 Background = lineParts[1];
+                            }
+                        }
+                        break;
+                    case "OPTDEF":
+                        {
+                            if (lineParts.Length > 3)
+                            {
+                                bool? opt_active = null;
+                                if (OptionCheck.Contains(lineParts[1]))
+                                    opt_active = true;
+                                if (OptionCheck.Contains("!" + lineParts[1]))
+                                    opt_active = false;
+                                ModOption opt = new ModOption()
+                                {
+                                    ID = lineParts[1],
+                                    Title = lineParts[3],
+                                    Parent = this,
+                                    Active = opt_active ?? (lineParts[2] == "1"), // if not set true or false, check for default
+                                };
+                                OptionCache.Add(lineParts[1], opt);
+                                Options.Add(opt);
                             }
                         }
                         break;
@@ -226,13 +230,15 @@ namespace DarkReignBootstrap
                         OptionCheck.Add(line);
                 }
             }
-            if(OptionCheck.Contains(id))
+            if (!val)
             {
-                if (!val) OptionCheck.Remove(id);
+                if (OptionCheck.Contains(id)) OptionCheck.Remove(id);
+                if (!OptionCheck.Contains("!" + id)) OptionCheck.Add("!" + id);
             }
-            else
+            if (val)
             {
-                if (val) OptionCheck.Add(id);
+                if (!OptionCheck.Contains(id)) OptionCheck.Add(id);
+                if (OptionCheck.Contains("!" + id)) OptionCheck.Remove("!" + id);
             }
 
             File.WriteAllLines(FilenameOptions, OptionCheck.ToArray());

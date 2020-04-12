@@ -4,4 +4,4 @@ If you have issues, please contact @Nielk1#0001 on the Dark Reign community disc
 
 This product has no warranty as it is a fan work (and a beta). Your antivirus may attempt to block bootstrap.exe from functioning, if this occurs you must add bootstrap.exe as an exception in your antivirus configuration. The full source code for this patch is available at https://github.com/Nielk1/DarkReignLauncher if you'd like to inspect it or compile it yourself.
 
-Currently, Windows XP is not supported but Windows Vista and up should work.  All development has taken place on Windows 7.
+Currently, Windows XP is not supported but Windows Vista and up should work.

@@ -3,11 +3,14 @@ MENU	TOP
 NOTE	SP
 LOGO	logo-dkreign.png
 BACK	bg-dkreign.png
+OPTDEF	CLNBGSHT	0	No map name on Beegshot screenshot
+OPTDEF	CUBEFPS	1	Fix Menu Transition FPS limiter
+OPTDEF	FSTCUBE	1	Faster Menu Transitions
 ASM	hack_save_fix
 ASM	fixed_instead_of_disc
 ASM	force_disc_drk
-ASM	shell_movie_fix_framewait
-OPT	FSTCUBE	Faster Menu Transitions	MOD	fast_cubes	Alternate cube videos that are faster (and smoother as they're 30fps instead of 10fps)
+OPT	CUBEFPS	ASM	shell_movie_fix_framewait
+OPT	FSTCUBE	MOD	fast_cubes	Alternate cube videos that are faster (and smoother as they're 30fps instead of 10fps)
 MOD	fix_cubes	We just always do this, it fixes one video's sound effect, but they're slow so the user will probably just activate the optional mod that speeds them up above
 MOD	hide_exp_sp_bttn
 MOD	patch_1_8_2
@@ -63,4 +66,4 @@ MOD	tileset_asteroid
 MOD	tileset_auralien
 MOD	tileset_aust
 MOD	tileset_volcanic
-OPT	CLNBGSHT	No map name on Beegshot screenshot	ASM	clean_beegshot
+OPT	CLNBGSHT	ASM	clean_beegshot

@@ -150,8 +150,13 @@
                     <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <ComboBox FontSize="10pt" Grid.Row="0" Grid.Column="1" x:Name="Ddraw_ddraw_shader" Text="Shader" SelectionChanged="Shader_SelectionChanged"/>
-                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="0" Text="Shader" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <ComboBox FontSize="10pt" Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" x:Name="Ddraw_ddraw_shader" Text="Shader" SelectionChanged="Shader_SelectionChanged"/>
+                <local:OutlinedTextBlock Grid.Row="0" Grid.Column="0" Text="OpenGL" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+                <local:OutlinedTextBlock Grid.Row="1" Grid.Column="0" Text="Shader" FontFamily="Verdana" FontSize="8pt" FontWeight="Black" TextWrapping="NoWrap" Fill="White" Stroke="Black" StrokeThickness="0.3" HorizontalAlignment="Left" Margin="2,0,0,0"/>
             </Grid>
             <local:OutlinedTextBlock Text="Logging"
                                      FontFamily="Verdana"

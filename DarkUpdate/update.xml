@@ -2,7 +2,7 @@
 <UpdateData>
   <Version>0.1.5.0</Version>
   <IniFixes>
-    <IniFix File="TACTICS.CFG" Section="MultiPlayer" Key="ActiveNetServer" Value="battlezone1.net" />
+    <IniFix File="TACTICS.CFG" Section="MultiPlayer" Key="ActiveNetServer" Value="alink.iondriver.com" />
   </IniFixes>
   <BaseFiles>
     <File>AIPEDIT.EXE</File>
@@ -1477,8 +1477,8 @@
     <File>mods\evolution_of_xenite\aip\TSPECIAL.FSM</File>
   </DeleteFiles>
   <Modules>
-    <Module>binary.3.zip</Module>
-    <Module>ldata.2.zip</Module>
+    <Module>binary.4.zip</Module>
+    <Module>ldata.3.zip</Module>
     <Module>maps_1_alien_2.1.zip</Module>
     <Module>maps_1_alien_3.1.zip</Module>
     <Module>maps_1_alien_4.1.zip</Module>
@@ -1536,17 +1536,21 @@
     <Module>tileset_auralien.1.zip</Module>
     <Module>tileset_aust.1.zip</Module>
     <Module>tileset_volcanic.1.zip</Module>
-    <Module>fast_cubes.1.zip</Module>
+    <Module>fast_cubes.2.zip</Module>
     <Module>fix_cubes.1.zip</Module>
     <Module>hide_drk_sp_bttn.1.zip</Module>
     <Module>hide_exp_sp_bttn.1.zip</Module>
-    <Module>evolution_of_xenite.2.zip</Module>
+    <Module>evolution_of_xenite.3.zip</Module>
   </Modules>
   <OldModules>
+    <Module>fast_cubes.1.zip</Module>
+    <Module>binary.3.zip</Module>
     <Module>binary.2.zip</Module>
     <Module>binary.1.zip</Module>
+    <Module>ldata.2.zip</Module>
     <Module>ldata.1.zip</Module>
     <Module>shims.1.zip</Module>
+    <Module>evolution_of_xenite.2.zip</Module>
     <Module>evolution_of_xenite.1.zip</Module>
   </OldModules>
 </UpdateData>

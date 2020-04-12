@@ -3,6 +3,7 @@ MENU	TOP
 NOTE	SP&MP
 LOGO	logo-shadowhand.png
 BACK	bg-shadowhand.png
+OPTDEF	CLNBGSHT	0	No map name on Beegshot screenshot
 ASM	hack_save_fix
 ASM	fixed_instead_of_disc
 ASM	force_disc_exp
@@ -60,4 +61,4 @@ MOD	tileset_asteroid
 MOD	tileset_auralien
 MOD	tileset_aust
 MOD	tileset_volcanic
-OPT	CLNBGSHT	No map name on Beegshot screenshot	ASM	clean_beegshot
+OPT	CLNBGSHT	ASM	clean_beegshot
